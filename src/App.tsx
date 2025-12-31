@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { BottomNav } from './components/Navigation';
+import { InstallPrompt } from './components/InstallPrompt';
 import { TrackerPage, StatsPage, SettingsPage, OnboardingPage } from './pages';
 
 function AppShell() {
@@ -18,6 +19,7 @@ function AppShell() {
         </Routes>
       </main>
       {!hideNav && <BottomNav />}
+      {!hideNav && <InstallPrompt />}
     </div>
   );
 }
