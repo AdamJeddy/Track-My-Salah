@@ -2,7 +2,7 @@ import { Home, BarChart3, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Tracker', icon: Home },
+  { path: '/tracker', label: 'Tracker', icon: Home },
   { path: '/stats', label: 'Stats', icon: BarChart3 },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];

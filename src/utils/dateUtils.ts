@@ -1,5 +1,14 @@
-import moment from 'moment';
+import moment, { type Moment } from 'moment';
 import 'moment-hijri';
+
+// Type augmentation for hijri helpers
+declare module 'moment' {
+  interface Moment {
+    iYear(): number;
+    iMonth(): number;
+    iDate(): number;
+  }
+}
 
 // Remove leading 'i' prefixes that moment-hijri includes in formatted tokens
 function stripHijriPrefixes(value: string): string {
@@ -7,7 +16,7 @@ function stripHijriPrefixes(value: string): string {
   return value.replace(/i(?=[\p{L}0-9\u0660-\u0669])/gu, '');
 }
 
-function formatHijri(date: string | Date, pattern: string): string {
+function formatHijri(date: string | Date | Moment, pattern: string): string {
   return stripHijriPrefixes(moment(date).format(pattern));
 }
 
