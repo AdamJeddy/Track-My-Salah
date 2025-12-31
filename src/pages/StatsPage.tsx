@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PrayerRecord } from '../models/PrayerRecord';
 import { getAllRecords, getRecordsByDate } from '../services/localStorageService';
-import { getCurrentGregorianYear } from '../utils/dateUtils';
+import { getCurrentGregorianYear, getCurrentHijriYear, getCurrentHijriMonth } from '../utils/dateUtils';
 import {
   StatisticsCard,
   YearlyHeatmap,
@@ -9,15 +9,21 @@ import {
   DayDetailModal,
   CalendarToggle,
 } from '../components/Stats';
-import moment from 'moment';
-import 'moment-hijri';
+import momentHijri from 'moment-hijri';
+
+const moment = momentHijri;
+moment.locale('en');
 
 export function StatsPage() {
   const [records, setRecords] = useState<PrayerRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState(getCurrentGregorianYear());
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // 1-12
   const [calendarMode, setCalendarMode] = useState<'gregorian' | 'hijri'>('gregorian');
+  const [selectedYear, setSelectedYear] = useState(
+    calendarMode === 'gregorian' ? getCurrentGregorianYear() : getCurrentHijriYear()
+  );
+  const [selectedMonth, setSelectedMonth] = useState(
+    calendarMode === 'gregorian' ? moment().month() + 1 : getCurrentHijriMonth()
+  ); // 1-12
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [dayRecords, setDayRecords] = useState<PrayerRecord[]>([]);
 
@@ -47,8 +53,40 @@ export function StatsPage() {
 
   // Filter records for selected year
   const yearRecords = records.filter((r) => {
-    const recordYear = moment(r.gregorian_date).year();
-    return recordYear === selectedYear;
+    try {
+      if (calendarMode === 'gregorian') {
+        const recordYear = moment(r.gregorian_date).year();
+        return recordYear === selectedYear;
+      } else {
+        // For Hijri, parse from formatted iYYYY with Arabic numeral conversion
+        const m = moment(r.gregorian_date) as any;
+        let hijriYear: number;
+        
+        if (typeof m.iYear === 'function') {
+          hijriYear = m.iYear();
+        } else {
+          const hijriStr = m.format('iYYYY');
+          // Convert Arabic numerals to ASCII using char codes
+          const arabicZeroCode = '٠'.charCodeAt(0); // 1632
+          const englishStr = (Array.from(hijriStr) as string[])
+            .map((char: string) => {
+              const code = char.charCodeAt(0);
+              if (code >= arabicZeroCode && code <= arabicZeroCode + 9) {
+                return String(code - arabicZeroCode);
+              }
+              return char;
+            })
+            .join('')
+            .replace(/i/g, '');
+          hijriYear = parseInt(englishStr, 10);
+        }
+        
+        return hijriYear === selectedYear;
+      }
+    } catch (error) {
+      console.error('Error filtering record:', r, error);
+      return false;
+    }
   });
 
   if (loading) {
@@ -74,7 +112,12 @@ export function StatsPage() {
         <StatisticsCard records={records} />
 
         {/* Calendar Toggle */}
-        <CalendarToggle mode={calendarMode} onModeChange={setCalendarMode} />
+        <CalendarToggle mode={calendarMode} onModeChange={(mode) => {
+          setCalendarMode(mode);
+          // Reset year and month when switching modes
+          setSelectedYear(mode === 'gregorian' ? getCurrentGregorianYear() : getCurrentHijriYear());
+          setSelectedMonth(mode === 'gregorian' ? moment().month() + 1 : getCurrentHijriMonth());
+        }} />
 
         {/* Year Selector */}
         <div className="flex items-center justify-center gap-4">
@@ -85,33 +128,35 @@ export function StatsPage() {
             ← {selectedYear - 1}
           </button>
           <span className="text-lg font-semibold text-gray-900 dark:text-white">
-            {selectedYear}
+            {selectedYear} {calendarMode === 'hijri' ? 'H' : ''}
           </span>
           <button
             onClick={() => setSelectedYear((y) => y + 1)}
             className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            disabled={selectedYear >= getCurrentGregorianYear()}
+            disabled={calendarMode === 'gregorian' && selectedYear >= getCurrentGregorianYear()}
           >
             {selectedYear + 1} →
           </button>
         </div>
-
-        {/* Yearly Heatmap */}
-        <YearlyHeatmap
-          records={yearRecords}
-          year={selectedYear}
-          onDayClick={handleDayClick}
-        />
 
         {/* Monthly Grid */}
         <MonthlyGrid
           records={records}
           year={selectedYear}
           month={selectedMonth}
+          calendarMode={calendarMode}
           onMonthChange={(year, month) => {
             setSelectedYear(year);
             setSelectedMonth(month);
           }}
+          onDayClick={handleDayClick}
+        />
+
+        {/* Yearly Heatmap */}
+        <YearlyHeatmap
+          records={yearRecords}
+          year={selectedYear}
+          calendarMode={calendarMode}
           onDayClick={handleDayClick}
         />
 

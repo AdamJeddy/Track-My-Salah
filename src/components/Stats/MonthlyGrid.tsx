@@ -1,20 +1,36 @@
 import { useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PrayerRecord } from '../../models/PrayerRecord';
-import { getDatesInMonth, getMonthYearDisplay, formatHijri } from '../../utils/dateUtils';
-import moment from 'moment';
-import 'moment-hijri';
+import { 
+  getDatesInMonth, 
+  getMonthYearDisplay, 
+  formatHijri,
+  getDatesInHijriMonth,
+  getHijriMonthYearDisplay,
+  getHijriMonthStartDay,
+  getHijriDay
+} from '../../utils/dateUtils';
+import momentHijri from 'moment-hijri';
+
+const moment = momentHijri;
 
 interface MonthlyGridProps {
   records: PrayerRecord[];
   year: number;
   month: number; // 1-12
+  calendarMode?: 'gregorian' | 'hijri';
   onMonthChange: (year: number, month: number) => void;
   onDayClick?: (date: string) => void;
 }
 
-export function MonthlyGrid({ records, year, month, onMonthChange, onDayClick }: MonthlyGridProps) {
-  const dates = useMemo(() => getDatesInMonth(year, month), [year, month]);
+export function MonthlyGrid({ records, year, month, calendarMode = 'gregorian', onMonthChange, onDayClick }: MonthlyGridProps) {
+  // Get dates based on calendar mode
+  const dates = useMemo(() => {
+    if (calendarMode === 'hijri') {
+      return getDatesInHijriMonth(year, month);
+    }
+    return getDatesInMonth(year, month);
+  }, [year, month, calendarMode]);
   
   // Group records by date
   const recordsByDate = useMemo(() => {
@@ -54,8 +70,13 @@ export function MonthlyGrid({ records, year, month, onMonthChange, onDayClick }:
   };
 
   // Get first day of month to calculate offset
-  const firstDayOfMonth = moment(`${year}-${String(month).padStart(2, '0')}-01`);
-  const startDayOfWeek = firstDayOfMonth.day(); // 0 = Sunday
+  const startDayOfWeek = useMemo(() => {
+    if (calendarMode === 'hijri') {
+      return getHijriMonthStartDay(year, month);
+    }
+    const firstDayOfMonth = moment(`${year}-${String(month).padStart(2, '0')}-01`);
+    return firstDayOfMonth.day(); // 0 = Sunday
+  }, [year, month, calendarMode]);
 
   // Navigation handlers
   const handlePrevMonth = () => {
@@ -74,6 +95,14 @@ export function MonthlyGrid({ records, year, month, onMonthChange, onDayClick }:
     }
   };
 
+  // Get display title
+  const monthTitle = useMemo(() => {
+    if (calendarMode === 'hijri') {
+      return getHijriMonthYearDisplay(year, month);
+    }
+    return getMonthYearDisplay(year, month);
+  }, [year, month, calendarMode]);
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
       {/* Month Navigation */}
@@ -87,7 +116,7 @@ export function MonthlyGrid({ records, year, month, onMonthChange, onDayClick }:
         </button>
         
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {getMonthYearDisplay(year, month)}
+          {monthTitle}
         </h2>
         
         <button
@@ -121,8 +150,13 @@ export function MonthlyGrid({ records, year, month, onMonthChange, onDayClick }:
         {/* Date cells */}
         {dates.map((date) => {
           const status = getDayStatus(date);
-          const dayNum = moment(date).date();
-          const hijriDay = formatHijri(date, 'iD');
+          // Show the day number based on calendar mode
+          const dayNum = calendarMode === 'hijri' 
+            ? getHijriDay(date)  // Hijri day number
+            : moment(date).date();  // Gregorian day number
+          const hijriDay = calendarMode === 'hijri'
+            ? moment(date).date()  // Show Gregorian as secondary
+            : formatHijri(date, 'iD');  // Show Hijri as secondary
           const isToday = moment(date).isSame(moment(), 'day');
           
           return (

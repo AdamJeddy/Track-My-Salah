@@ -1,22 +1,29 @@
-import CalendarHeatmap from 'react-calendar-heatmap';
-import 'react-calendar-heatmap/dist/styles.css';
 import { PrayerRecord } from '../../models/PrayerRecord';
 import { useMemo } from 'react';
+import { 
+  getDatesInMonth, 
+  getDatesInHijriMonth,
+  getHijriMonthStartDay,
+  getHijriDay
+} from '../../utils/dateUtils';
+import momentHijri from 'moment-hijri';
+
+const moment = momentHijri;
 
 interface YearlyHeatmapProps {
   records: PrayerRecord[];
   year: number;
+  calendarMode?: 'gregorian' | 'hijri';
   onDayClick?: (date: string) => void;
 }
 
-interface HeatmapValue {
-  date: string;
-  count: number; // 0 = missed, 1 = partial, 2 = prayed, 3 = jamah
-}
+// Month names
+const GREGORIAN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const HIJRI_MONTHS = ['Muḥ', 'Ṣaf', 'Rb1', 'Rb2', 'Jm1', 'Jm2', 'Raj', 'Sha', 'Ram', 'Shw', 'Qʿd', 'Ḥij'];
 
-export function YearlyHeatmap({ records, year, onDayClick }: YearlyHeatmapProps) {
-  const heatmapData = useMemo(() => {
-    // Group records by date
+export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDayClick }: YearlyHeatmapProps) {
+  // Group records by date with status calculation
+  const dayStatusMap = useMemo(() => {
     const dayMap = new Map<string, { prayed: number; jamah: number; missed: number; total: number }>();
     
     records.forEach((record) => {
@@ -28,83 +35,116 @@ export function YearlyHeatmap({ records, year, onDayClick }: YearlyHeatmapProps)
       if (record.status === 'Prayed') day.prayed++;
       else if (record.status === 'Jamah') day.jamah++;
       else if (record.status === 'Missed') day.missed++;
-      // Excused doesn't count towards total for coloring
       if (record.status !== 'Excused' && record.status !== null) day.total++;
     });
     
-    // Convert to heatmap format
-    const values: HeatmapValue[] = [];
-    
+    // Convert to status levels
+    const statusMap = new Map<string, number>();
     dayMap.forEach((stats, date) => {
       const prayedRatio = stats.total > 0 ? (stats.prayed + stats.jamah) / stats.total : 0;
       const jamahRatio = stats.total > 0 ? stats.jamah / stats.total : 0;
       
-      let count = 0;
+      let status = 0;
       if (stats.missed > 0 && stats.missed === stats.total) {
-        count = 1; // All missed
+        status = 1; // All missed
       } else if (prayedRatio >= 0.8) {
-        count = jamahRatio >= 0.5 ? 4 : 3; // Excellent (mostly jamah or mostly prayed)
+        status = jamahRatio >= 0.5 ? 4 : 3; // Excellent
       } else if (prayedRatio >= 0.5) {
-        count = 2; // Good
+        status = 2; // Good
       } else if (stats.total > 0) {
-        count = 1; // Poor
+        status = 1; // Poor
       }
-      
-      values.push({ date, count });
+      statusMap.set(date, status);
     });
     
-    return values;
+    return statusMap;
   }, [records]);
 
-  const startDate = `${year}-01-01`;
-  const endDate = `${year}-12-31`;
-
-  // Custom tooltip
-  const getTooltipDataAttrs = (value: HeatmapValue | null) => {
-    if (!value || !value.date) {
-      return { 'data-tip': 'No data' };
+  // Generate month data for all 12 months
+  const monthsData = useMemo(() => {
+    const months = [];
+    for (let m = 1; m <= 12; m++) {
+      const dates = calendarMode === 'hijri' 
+        ? getDatesInHijriMonth(year, m)
+        : getDatesInMonth(year, m);
+      
+      const startDay = calendarMode === 'hijri'
+        ? getHijriMonthStartDay(year, m)
+        : moment(`${year}-${String(m).padStart(2, '0')}-01`).day();
+      
+      months.push({ month: m, dates, startDay });
     }
-    
-    const dayRecords = records.filter((r) => r.gregorian_date === value.date);
-    const prayed = dayRecords.filter((r) => r.status === 'Prayed' || r.status === 'Jamah').length;
-    const total = dayRecords.filter((r) => r.status !== 'Excused' && r.status !== null).length;
-    
-    return {
-      'data-tip': `${value.date}: ${prayed}/${total || 0} prayers`,
-    };
+    return months;
+  }, [year, calendarMode]);
+
+  const monthNames = calendarMode === 'hijri' ? HIJRI_MONTHS : GREGORIAN_MONTHS;
+
+  // Color classes for status levels
+  const getStatusColor = (status: number) => {
+    switch (status) {
+      case 1: return 'bg-red-300 dark:bg-red-400';
+      case 2: return 'bg-green-200 dark:bg-green-300';
+      case 3: return 'bg-green-400 dark:bg-green-500';
+      case 4: return 'bg-green-600 dark:bg-green-700';
+      default: return 'bg-gray-200 dark:bg-gray-700';
+    }
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        {year} Overview
+        {year} {calendarMode === 'hijri' ? 'Hijri' : ''} Overview
       </h2>
       
-      <div className="overflow-x-auto">
-        <div className="min-w-[700px]">
-          <CalendarHeatmap
-            startDate={new Date(startDate)}
-            endDate={new Date(endDate)}
-            values={heatmapData}
-            classForValue={(value) => {
-              if (!value || value.count === 0) {
-                return 'color-empty';
-              }
-              return `color-scale-${value.count}`;
-            }}
-            tooltipDataAttrs={getTooltipDataAttrs as any}
-            onClick={(value) => {
-              if (value && onDayClick) {
-                onDayClick(value.date);
-              }
-            }}
-            showWeekdayLabels
-          />
-        </div>
+      {/* 12-month grid - 3 columns on larger screens, 2 on mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {monthsData.map(({ month, dates, startDay }) => (
+          <div key={month} className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2">
+            {/* Month name */}
+            <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">
+              {monthNames[month - 1]}
+            </div>
+            
+            {/* Mini calendar grid */}
+            <div className="grid grid-cols-7 gap-[2px]">
+              {/* Empty cells for offset */}
+              {Array.from({ length: startDay }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
+              
+              {/* Day cells */}
+              {dates.map((date) => {
+                const status = dayStatusMap.get(date) || 0;
+                const isToday = moment(date).isSame(moment(), 'day');
+                // Get the day number based on calendar mode
+                const dayNum = calendarMode === 'hijri' 
+                  ? getHijriDay(date) 
+                  : moment(date).date();
+                
+                return (
+                  <button
+                    key={date}
+                    onClick={() => onDayClick?.(date)}
+                    className={`
+                      aspect-square rounded-[2px] w-full flex items-center justify-center
+                      ${getStatusColor(status)}
+                      ${isToday ? 'ring-1 ring-primary-500' : ''}
+                      hover:ring-1 hover:ring-gray-400
+                      transition-all
+                    `}
+                    title={date}
+                  >
+                    <span className="text-[6px] font-medium text-gray-700 dark:text-gray-200">{dayNum}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-2 mt-4 text-xs text-gray-600 dark:text-gray-400">
+      <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-600 dark:text-gray-400">
         <span>Less</span>
         <div className="flex gap-1">
           <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-700" />
@@ -115,42 +155,6 @@ export function YearlyHeatmap({ records, year, onDayClick }: YearlyHeatmapProps)
         </div>
         <span>More</span>
       </div>
-      
-      {/* Custom styles for heatmap */}
-      <style>{`
-        .react-calendar-heatmap .color-empty {
-          fill: #e5e7eb;
-        }
-        .dark .react-calendar-heatmap .color-empty {
-          fill: #374151;
-        }
-        .react-calendar-heatmap .color-scale-1 {
-          fill: #fca5a5;
-        }
-        .react-calendar-heatmap .color-scale-2 {
-          fill: #bbf7d0;
-        }
-        .react-calendar-heatmap .color-scale-3 {
-          fill: #4ade80;
-        }
-        .react-calendar-heatmap .color-scale-4 {
-          fill: #16a34a;
-        }
-        .react-calendar-heatmap text {
-          fill: #6b7280;
-          font-size: 8px;
-        }
-        .dark .react-calendar-heatmap text {
-          fill: #9ca3af;
-        }
-        .react-calendar-heatmap rect:hover {
-          stroke: #1f2937;
-          stroke-width: 1px;
-        }
-        .dark .react-calendar-heatmap rect:hover {
-          stroke: #f3f4f6;
-        }
-      `}</style>
     </div>
   );
 }
