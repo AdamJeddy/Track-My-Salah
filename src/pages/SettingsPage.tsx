@@ -21,7 +21,6 @@ export function SettingsPage() {
   const [importing, setImporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
-  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Load gender preference on mount
@@ -29,7 +28,6 @@ export function SettingsPage() {
     const loadGender = async () => {
       const savedGender = await getGenderPreference();
       setGender(savedGender);
-      setLoading(false);
     };
     loadGender();
   }, []);
