@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { getAllRecords, importRecords, clearAllRecords } from '../services/localStorageService';
+import { getAllRecords, importRecords, clearAllRecords, getGenderPreference, setGenderPreference } from '../services/localStorageService';
 import { exportToCSV, downloadCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
 import {
   Moon,
@@ -11,6 +11,7 @@ import {
   Github,
   Info,
   AlertTriangle,
+  Users,
 } from 'lucide-react';
 
 export function SettingsPage() {
@@ -19,7 +20,31 @@ export function SettingsPage() {
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Load gender preference on mount
+  useEffect(() => {
+    const loadGender = async () => {
+      const savedGender = await getGenderPreference();
+      setGender(savedGender);
+      setLoading(false);
+    };
+    loadGender();
+  }, []);
+
+  // Handle gender change
+  const handleGenderChange = async (newGender: 'male' | 'female') => {
+    try {
+      await setGenderPreference(newGender);
+      setGender(newGender);
+      setMessage({ type: 'success', text: `Gender preference updated to ${newGender}` });
+    } catch (error) {
+      console.error('Failed to update gender:', error);
+      setMessage({ type: 'error', text: 'Failed to update gender preference' });
+    }
+  };
 
   // Export handler
   const handleExport = async () => {
@@ -157,7 +182,49 @@ export function SettingsPage() {
           </button>
         </div>
 
-        {/* Data Section */}
+        {/* Preferences Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Preferences
+            </h2>
+          </div>
+          
+          <div className="p-4 space-y-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Users className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">Gender</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Affects available prayer status options
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleGenderChange('male')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                  gender === 'male'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                Male
+              </button>
+              <button
+                onClick={() => handleGenderChange('female')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                  gender === 'female'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                Female
+              </button>
+            </div>
+          </div>
+        </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">

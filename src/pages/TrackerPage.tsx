@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PrayerName, PrayerStatus } from '../models/PrayerRecord';
 import { getTodayGregorian, addDays, isFutureDate } from '../utils/dateUtils';
-import { getRecordsByDate, saveRecord } from '../services/localStorageService';
+import { getRecordsByDate, saveRecord, getGenderPreference } from '../services/localStorageService';
 import { DualDateHeader, PrayerList, DailySummary } from '../components/Tracker';
 
 export function TrackerPage() {
@@ -14,12 +14,15 @@ export function TrackerPage() {
     Isha: null,
   });
   const [loading, setLoading] = useState(true);
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
 
   // Load records for selected date
   const loadRecords = useCallback(async () => {
     setLoading(true);
     try {
       const records = await getRecordsByDate(selectedDate);
+      const savedGender = await getGenderPreference();
+      setGender(savedGender);
       
       // Initialize all to null
       const statuses: Record<PrayerName, PrayerStatus> = {
@@ -110,6 +113,7 @@ export function TrackerPage() {
               prayerStatuses={prayerStatuses}
               onStatusChange={handleStatusChange}
               disabled={isDisabled}
+              gender={gender}
             />
 
             {/* Daily Summary */}

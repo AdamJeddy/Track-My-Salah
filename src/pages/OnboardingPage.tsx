@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, BarChart3, CalendarClock, ShieldCheck, Sparkles } from 'lucide-react';
-import { importRecords } from '../services/localStorageService';
+import { CheckCircle2, BarChart3, CalendarClock, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { importRecords, setGenderPreference } from '../services/localStorageService';
 import { PRAYER_NAMES, PrayerRecord, PrayerStatus } from '../models/PrayerRecord';
 import { addDays, getTodayGregorian, gregorianToHijri } from '../utils/dateUtils';
 
@@ -58,20 +58,40 @@ function buildSampleData(): PrayerRecord[] {
 export function OnboardingPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showGenderModal, setShowGenderModal] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female' | null>(null);
+  const [importSampleData, setImportSampleData] = useState(false);
 
-  const handleGetStarted = () => {
-    navigate('/tracker');
-  };
-
-  const handleSampleData = async () => {
+  const proceedToTracker = async (withGender: 'male' | 'female' | null = selectedGender, importSample = false) => {
     try {
       setLoading(true);
-      const records = buildSampleData();
-      await importRecords(records);
+      if (withGender) {
+        await setGenderPreference(withGender);
+      }
+      if (importSample) {
+        const records = buildSampleData();
+        await importRecords(records);
+      }
       navigate('/tracker');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGetStarted = () => {
+    setImportSampleData(false);
+    setShowGenderModal(true);
+  };
+
+  const handleSampleData = async () => {
+    setImportSampleData(true);
+    setShowGenderModal(true);
+  };
+
+  const handleGenderSelected = async (gender: 'male' | 'female') => {
+    setSelectedGender(gender);
+    setShowGenderModal(false);
+    await proceedToTracker(gender, importSampleData);
   };
 
   return (
@@ -110,7 +130,8 @@ export function OnboardingPage() {
         <div className="space-y-3">
           <button
             onClick={handleGetStarted}
-            className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] transition text-base font-semibold shadow-lg shadow-emerald-900/40"
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] transition text-base font-semibold shadow-lg shadow-emerald-900/40 disabled:opacity-60"
           >
             Get Started
           </button>
@@ -119,7 +140,7 @@ export function OnboardingPage() {
             disabled={loading}
             className="w-full py-3.5 rounded-xl bg-white/10 hover:bg-white/15 active:scale-[0.99] transition text-base font-semibold text-white border border-white/10 disabled:opacity-60"
           >
-            {loading ? 'Loading sample data...' : 'View with Sample Data'}
+            {loading ? 'Loading...' : 'View with Sample Data'}
           </button>
         </div>
 
@@ -129,6 +150,39 @@ export function OnboardingPage() {
           <span>Made with care for the Muslim community</span>
         </div>
       </div>
+
+      {/* Gender Selection Modal */}
+      {showGenderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Users className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Select Your Gender
+              </h3>
+            </div>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center">
+              This helps us customize your prayer tracking experience.
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleGenderSelected('male')}
+                className="w-full py-3 px-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-blue-900 dark:text-blue-100 font-semibold"
+              >
+                Male
+              </button>
+              <button
+                onClick={() => handleGenderSelected('female')}
+                className="w-full py-3 px-4 bg-pink-50 dark:bg-pink-900/20 border-2 border-pink-200 dark:border-pink-800 rounded-lg hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors text-pink-900 dark:text-pink-100 font-semibold"
+              >
+                Female
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

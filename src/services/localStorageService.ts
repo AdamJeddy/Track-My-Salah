@@ -185,3 +185,18 @@ export async function getRecordedDates(): Promise<string[]> {
   
   return Array.from(dates).sort();
 }
+
+/**
+ * Get user's gender preference ('male' | 'female' | null)
+ */
+export async function getGenderPreference(): Promise<'male' | 'female' | null> {
+  const gender = await localforage.getItem<'male' | 'female' | null>('user_gender');
+  return gender || null;
+}
+
+/**
+ * Set user's gender preference
+ */
+export async function setGenderPreference(gender: 'male' | 'female'): Promise<void> {
+  await localforage.setItem('user_gender', gender);
+}

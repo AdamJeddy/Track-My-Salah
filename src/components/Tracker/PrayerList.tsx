@@ -6,6 +6,7 @@ interface PrayerListProps {
   prayerStatuses: Record<PrayerName, PrayerStatus>;
   onStatusChange: (prayer: PrayerName, status: PrayerStatus) => void;
   disabled?: boolean;
+  gender?: 'male' | 'female' | null;
 }
 
 const PRAYER_ICONS: Record<PrayerName, React.ReactNode> = {
@@ -24,7 +25,7 @@ const PRAYER_TIMES: Record<PrayerName, string> = {
   Isha: 'Night',
 };
 
-export function PrayerList({ prayerStatuses, onStatusChange, disabled }: PrayerListProps) {
+export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }: PrayerListProps) {
   return (
     <div className="space-y-2">
       {PRAYER_NAMES.map((prayer) => (
@@ -54,6 +55,7 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled }: PrayerL
                 currentStatus={prayerStatuses[prayer]}
                 onStatusChange={(status) => onStatusChange(prayer, status)}
                 disabled={disabled}
+                gender={gender}
               />
             </div>
           </div>

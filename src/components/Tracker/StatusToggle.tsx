@@ -4,6 +4,7 @@ interface StatusToggleProps {
   currentStatus: PrayerStatus;
   onStatusChange: (status: PrayerStatus) => void;
   disabled?: boolean;
+  gender?: 'male' | 'female' | null;
 }
 
 const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, { 
@@ -43,16 +44,23 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
   },
 };
 
-export function StatusToggle({ currentStatus, onStatusChange, disabled }: StatusToggleProps) {
+export function StatusToggle({ currentStatus, onStatusChange, disabled, gender }: StatusToggleProps) {
   const handleClick = (status: NonNullable<PrayerStatus>) => {
     if (disabled) return;
     // Toggle: if same status clicked, set to null; otherwise set new status
     onStatusChange(currentStatus === status ? null : status);
   };
 
+  // Filter out "Excused" for males
+  const statusOptions = PRAYER_STATUS_OPTIONS.filter((s): s is NonNullable<PrayerStatus> => {
+    if (s === null) return false;
+    if (gender === 'male' && s === 'Excused') return false;
+    return true;
+  });
+
   return (
     <div className="flex gap-1 flex-nowrap overflow-x-auto">
-      {PRAYER_STATUS_OPTIONS.filter((s): s is NonNullable<PrayerStatus> => s !== null).map((status) => {
+      {statusOptions.map((status) => {
         const config = STATUS_CONFIG[status];
         const isActive = currentStatus === status;
         
