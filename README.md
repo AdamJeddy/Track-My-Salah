@@ -6,6 +6,8 @@ TrackMySalah was built to make it simple to log the five daily prayers with an e
 ## About the App
 TrackMySalah is a Progressive Web App that lets you log each prayer with a single tap, view streaks and consistency, and visualize your year with a GitHub-style heatmap. It supports both Gregorian and Hijri dates, works offline via IndexedDB and a service worker, and offers CSV export/import so users control their data.
 
+**Live App:** [https://track-my-salah.vercel.app/](https://track-my-salah.vercel.app/)  
+
 ## Core Features
 - Log statuses for Fajr, Dhuhr, Asr, Maghrib, Isha: Prayed, Jamah, Missed, Excused
 - Dual calendar display (Gregorian and Hijri) on the tracker and stats views

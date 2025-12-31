@@ -313,7 +313,7 @@ export function SettingsPage() {
             </p>
             
             <a
-              href="https://github.com"
+              href="https://github.com/AdamJeddy/Track-My-Salah"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary-600 dark:text-primary-400 hover:underline"
