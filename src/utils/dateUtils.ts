@@ -1,14 +1,14 @@
 import moment from 'moment';
 import 'moment-hijri';
 
-// Extend moment types for hijri
-declare module 'moment' {
-  interface Moment {
-    iYear(): number;
-    iMonth(): number;
-    iDate(): number;
-    format(format: string): string;
-  }
+// Remove leading 'i' prefixes that moment-hijri includes in formatted tokens
+function stripHijriPrefixes(value: string): string {
+  // Remove literal "i" prefixes moment-hijri adds before numbers/month names, e.g., "i31", "iDecember"
+  return value.replace(/i(?=[\p{L}0-9\u0660-\u0669])/gu, '');
+}
+
+function formatHijri(date: string | Date, pattern: string): string {
+  return stripHijriPrefixes(moment(date).format(pattern));
 }
 
 /**
@@ -18,7 +18,7 @@ declare module 'moment' {
  */
 export function gregorianToHijri(gregorianDate: string | Date): string {
   const m = moment(gregorianDate);
-  return m.format('iYYYY-iMM-iDD');
+  return stripHijriPrefixes(m.format('iYYYY-iMM-iDD'));
 }
 
 /**
@@ -27,8 +27,7 @@ export function gregorianToHijri(gregorianDate: string | Date): string {
  * @returns Formatted Hijri date string (e.g., "11 Jumada al-Thani 1447")
  */
 export function getFormattedHijriDate(gregorianDate: string | Date): string {
-  const m = moment(gregorianDate);
-  return m.format('iD iMMMM iYYYY');
+  return formatHijri(gregorianDate, 'iD iMMMM iYYYY');
 }
 
 /**
@@ -52,7 +51,7 @@ export function getTodayGregorian(): string {
  * Get today's Hijri date in iYYYY-iMM-iDD format
  */
 export function getTodayHijri(): string {
-  return moment().format('iYYYY-iMM-iDD');
+  return formatHijri(moment(), 'iYYYY-iMM-iDD');
 }
 
 /**
@@ -150,5 +149,8 @@ export function getMonthYearDisplay(year: number, month: number): string {
  * Get Hijri month name and year for display
  */
 export function getHijriMonthYearDisplay(date: string): string {
-  return moment(date).format('iMMMM iYYYY');
+  return formatHijri(date, 'iMMMM iYYYY');
 }
+
+// Export helpers if needed elsewhere
+export { stripHijriPrefixes, formatHijri };

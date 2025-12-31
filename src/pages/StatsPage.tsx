@@ -10,6 +10,7 @@ import {
   CalendarToggle,
 } from '../components/Stats';
 import moment from 'moment';
+import 'moment-hijri';
 
 export function StatsPage() {
   const [records, setRecords] = useState<PrayerRecord[]>([]);

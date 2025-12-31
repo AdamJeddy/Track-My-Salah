@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PrayerRecord } from '../../models/PrayerRecord';
-import { getDatesInMonth, getMonthYearDisplay } from '../../utils/dateUtils';
+import { getDatesInMonth, getMonthYearDisplay, formatHijri } from '../../utils/dateUtils';
 import moment from 'moment';
+import 'moment-hijri';
 
 interface MonthlyGridProps {
   records: PrayerRecord[];
@@ -121,7 +122,7 @@ export function MonthlyGrid({ records, year, month, onMonthChange, onDayClick }:
         {dates.map((date) => {
           const status = getDayStatus(date);
           const dayNum = moment(date).date();
-          const hijriDay = moment(date).format('iD');
+          const hijriDay = formatHijri(date, 'iD');
           const isToday = moment(date).isSame(moment(), 'day');
           
           return (
