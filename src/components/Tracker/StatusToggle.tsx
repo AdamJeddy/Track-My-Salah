@@ -51,7 +51,7 @@ export function StatusToggle({ currentStatus, onStatusChange, disabled }: Status
   };
 
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-1 flex-nowrap overflow-x-auto">
       {PRAYER_STATUS_OPTIONS.filter((s): s is NonNullable<PrayerStatus> => s !== null).map((status) => {
         const config = STATUS_CONFIG[status];
         const isActive = currentStatus === status;
@@ -62,13 +62,14 @@ export function StatusToggle({ currentStatus, onStatusChange, disabled }: Status
             onClick={() => handleClick(status)}
             disabled={disabled}
             className={`
-              px-3 py-2 rounded-lg text-sm font-medium transition-all
-              min-h-[44px] min-w-[70px]
+              px-2 py-1.5 rounded-md text-xs font-medium transition-all flex-shrink-0
+              min-h-[36px] min-w-[60px]
               ${isActive ? config.bgActive : config.bgInactive}
               ${isActive ? config.textActive : config.textInactive}
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'}
             `}
             aria-pressed={isActive}
+            title={config.label}
           >
             {config.label}
           </button>

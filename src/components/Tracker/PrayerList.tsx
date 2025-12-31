@@ -26,30 +26,30 @@ const PRAYER_TIMES: Record<PrayerName, string> = {
 
 export function PrayerList({ prayerStatuses, onStatusChange, disabled }: PrayerListProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {PRAYER_NAMES.map((prayer) => (
         <div
           key={prayer}
-          className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm"
+          className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm"
         >
-          <div className="flex items-start gap-4">
+          <div className="flex items-center gap-2">
             {/* Prayer Icon and Name */}
-            <div className="flex items-center gap-3 min-w-[100px]">
+            <div className="flex items-center gap-2 min-w-[90px] flex-shrink-0">
               <div className="text-primary-600 dark:text-primary-400">
                 {PRAYER_ICONS[prayer]}
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-sm text-gray-900 dark:text-white leading-tight">
                   {prayer}
                 </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
                   {PRAYER_TIMES[prayer]}
                 </p>
               </div>
             </div>
 
             {/* Status Toggle */}
-            <div className="flex-1">
+            <div className="flex-1 ml-1">
               <StatusToggle
                 currentStatus={prayerStatuses[prayer]}
                 onStatusChange={(status) => onStatusChange(prayer, status)}

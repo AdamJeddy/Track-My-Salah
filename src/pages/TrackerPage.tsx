@@ -80,7 +80,7 @@ export function TrackerPage() {
 
   return (
     <div className="min-h-full pb-20">
-      <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
+      <div className="max-w-lg mx-auto px-4 py-3 space-y-3">
         {/* Date Header */}
         <DualDateHeader
           date={selectedDate}
