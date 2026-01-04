@@ -49,7 +49,7 @@ export function MonthlyGrid({ records, year, month, calendarMode = 'gregorian', 
     const dayRecords = recordsByDate.get(date) || [];
     if (dayRecords.length === 0) return 'empty';
     
-    const prayed = dayRecords.filter((r) => r.status === 'Prayed' || r.status === 'Jamah').length;
+    const prayed = dayRecords.filter((r) => r.status === 'Prayed' || r.status === 'Jamah' || r.status === 'Qada').length;
     const relevant = dayRecords.filter((r) => r.status !== 'Excused' && r.status !== null).length;
     
     if (relevant === 0) return 'empty';

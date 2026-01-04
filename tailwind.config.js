@@ -26,6 +26,7 @@ export default {
         jamah: '#2563eb',       // Blue
         missed: '#ef4444',      // Red
         excused: '#9ca3af',     // Grey
+        qada: '#a855f7',        // Purple for made-up prayers
       },
     },
   },

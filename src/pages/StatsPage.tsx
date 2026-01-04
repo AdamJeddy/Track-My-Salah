@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PrayerRecord } from '../models/PrayerRecord';
 import { getAllRecords, getRecordsByDate } from '../services/localStorageService';
-import { getCurrentGregorianYear, getCurrentHijriYear, getCurrentHijriMonth } from '../utils/dateUtils';
+import { getCurrentGregorianYear, getCurrentHijriYear, getCurrentHijriMonth, getFormattedGregorianDate, getFormattedHijriDate } from '../utils/dateUtils';
 import {
   StatisticsCard,
   YearlyHeatmap,
@@ -26,6 +26,28 @@ export function StatsPage() {
   ); // 1-12
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [dayRecords, setDayRecords] = useState<PrayerRecord[]>([]);
+
+  const missedGroups = useMemo(() => {
+    const map = new Map<string, { gregorian: string; hijri: string; missed: string[]; qada: string[] }>();
+
+    records.forEach((record) => {
+      if (record.status === 'Missed' || record.status === 'Qada') {
+        if (!map.has(record.gregorian_date)) {
+          map.set(record.gregorian_date, {
+            gregorian: record.gregorian_date,
+            hijri: record.hijri_date,
+            missed: [],
+            qada: [],
+          });
+        }
+        const entry = map.get(record.gregorian_date)!;
+        if (record.status === 'Missed') entry.missed.push(record.prayer_name);
+        if (record.status === 'Qada') entry.qada.push(record.prayer_name);
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.gregorian.localeCompare(a.gregorian)).slice(0, 20);
+  }, [records]);
 
   // Load all records
   const loadRecords = useCallback(async () => {
@@ -110,6 +132,49 @@ export function StatsPage() {
 
         {/* Statistics Card */}
         <StatisticsCard records={records} />
+
+        {/* Missed and Qada Log */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Missed & Qada</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Recent prayers that were missed or made up</p>
+            </div>
+          </div>
+
+          {missedGroups.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-gray-400">No missed or qada entries yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {missedGroups.map((group) => (
+                <div key={group.gregorian} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{getFormattedGregorianDate(group.gregorian)}</p>
+                      <p className="text-xs text-primary-600 dark:text-primary-400">{getFormattedHijriDate(group.gregorian)}</p>
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      {group.missed.length + group.qada.length} items
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {group.missed.map((prayer) => (
+                      <span key={`${group.gregorian}-${prayer}-missed`} className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
+                        {prayer} — Missed
+                      </span>
+                    ))}
+                    {group.qada.map((prayer) => (
+                      <span key={`${group.gregorian}-${prayer}-qada`} className="px-2 py-1 rounded-full text-xs font-medium bg-qada/10 text-qada">
+                        {prayer} — Qada
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Calendar Toggle */}
         <CalendarToggle mode={calendarMode} onModeChange={(mode) => {

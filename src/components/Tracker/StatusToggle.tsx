@@ -42,6 +42,13 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
     textActive: 'text-white',
     textInactive: 'text-gray-600 dark:text-gray-300',
   },
+  Qada: {
+    label: 'Qada',
+    bgActive: 'bg-qada',
+    bgInactive: 'bg-gray-100 dark:bg-gray-700',
+    textActive: 'text-white',
+    textInactive: 'text-gray-600 dark:text-gray-300',
+  },
 };
 
 export function StatusToggle({ currentStatus, onStatusChange, disabled, gender }: StatusToggleProps) {
@@ -59,7 +66,7 @@ export function StatusToggle({ currentStatus, onStatusChange, disabled, gender }
   });
 
   return (
-    <div className="flex gap-1 flex-nowrap overflow-x-auto">
+    <div className="flex flex-wrap md:flex-nowrap gap-1.5 md:gap-1">
       {statusOptions.map((status) => {
         const config = STATUS_CONFIG[status];
         const isActive = currentStatus === status;
@@ -70,8 +77,8 @@ export function StatusToggle({ currentStatus, onStatusChange, disabled, gender }
             onClick={() => handleClick(status)}
             disabled={disabled}
             className={`
-              px-2 py-1.5 rounded-md text-xs font-medium transition-all flex-shrink-0
-              min-h-[36px] min-w-[60px]
+              px-2.5 py-1.5 rounded-md text-xs font-medium transition-all
+              min-h-[36px] min-w-[68px]
               ${isActive ? config.bgActive : config.bgInactive}
               ${isActive ? config.textActive : config.textInactive}
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'}

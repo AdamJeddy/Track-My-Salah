@@ -13,6 +13,7 @@ const STATUS_BADGE: Record<NonNullable<PrayerStatus>, string> = {
   Jamah: 'bg-jamah/20 text-blue-700 dark:text-blue-400',
   Missed: 'bg-missed/20 text-red-700 dark:text-red-400',
   Excused: 'bg-excused/20 text-gray-700 dark:text-gray-400',
+  Qada: 'bg-qada/20 text-purple-700 dark:text-purple-400',
 };
 
 export function DayDetailModal({ date, records, onClose }: DayDetailModalProps) {
@@ -85,7 +86,7 @@ export function DayDetailModal({ date, records, onClose }: DayDetailModalProps) 
         <div className="px-4 pb-4">
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {records.filter((r) => r.status === 'Prayed' || r.status === 'Jamah').length} of{' '}
+              {records.filter((r) => r.status === 'Prayed' || r.status === 'Jamah' || r.status === 'Qada').length} of{' '}
               {records.filter((r) => r.status !== 'Excused' && r.status !== null).length || 5} prayers completed
             </span>
           </div>

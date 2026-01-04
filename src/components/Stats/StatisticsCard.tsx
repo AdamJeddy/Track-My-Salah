@@ -11,6 +11,7 @@ interface DayStats {
   jamah: number;
   missed: number;
   excused: number;
+  qada: number;
   total: number;
 }
 
@@ -26,6 +27,7 @@ function calculateStats(records: PrayerRecord[]) {
         jamah: 0,
         missed: 0,
         excused: 0,
+        qada: 0,
         total: 0,
       });
     }
@@ -35,6 +37,7 @@ function calculateStats(records: PrayerRecord[]) {
     else if (record.status === 'Jamah') day.jamah++;
     else if (record.status === 'Missed') day.missed++;
     else if (record.status === 'Excused') day.excused++;
+    else if (record.status === 'Qada') day.qada++;
     day.total++;
   });
   
@@ -74,10 +77,15 @@ function calculateStats(records: PrayerRecord[]) {
   // Calculate overall consistency
   let totalPrayed = 0;
   let totalRelevant = 0;
+  let totalQada = 0;
   
   records.forEach((record) => {
     if (record.status === 'Prayed' || record.status === 'Jamah') {
       totalPrayed++;
+    }
+    if (record.status === 'Qada') {
+      totalPrayed++;
+      totalQada++;
     }
     if (record.status !== 'Excused' && record.status !== null) {
       totalRelevant++;
@@ -94,6 +102,7 @@ function calculateStats(records: PrayerRecord[]) {
     consistency,
     totalDays: dayMap.size,
     totalPrayed,
+    totalQada,
   };
 }
 
@@ -157,6 +166,10 @@ export function StatisticsCard({ records }: StatisticsCardProps) {
           <span className="text-gray-600 dark:text-gray-400">Prayers Completed</span>
           <span className="font-medium text-gray-900 dark:text-white">{stats.totalPrayed}</span>
         </div>
+            <div className="flex justify-between text-sm mt-2">
+              <span className="text-gray-600 dark:text-gray-400">Qada</span>
+              <span className="font-medium text-gray-900 dark:text-white">{stats.totalQada}</span>
+            </div>
       </div>
     </div>
   );

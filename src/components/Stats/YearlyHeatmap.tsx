@@ -24,24 +24,25 @@ const HIJRI_MONTHS = ['Muḥ', 'Ṣaf', 'Rb1', 'Rb2', 'Jm1', 'Jm2', 'Raj', 'Sha'
 export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDayClick }: YearlyHeatmapProps) {
   // Group records by date with status calculation
   const dayStatusMap = useMemo(() => {
-    const dayMap = new Map<string, { prayed: number; jamah: number; missed: number; total: number }>();
+    const dayMap = new Map<string, { prayed: number; jamah: number; missed: number; qada: number; total: number }>();
     
     records.forEach((record) => {
       if (!dayMap.has(record.gregorian_date)) {
-        dayMap.set(record.gregorian_date, { prayed: 0, jamah: 0, missed: 0, total: 0 });
+        dayMap.set(record.gregorian_date, { prayed: 0, jamah: 0, missed: 0, qada: 0, total: 0 });
       }
       
       const day = dayMap.get(record.gregorian_date)!;
       if (record.status === 'Prayed') day.prayed++;
       else if (record.status === 'Jamah') day.jamah++;
       else if (record.status === 'Missed') day.missed++;
+      else if (record.status === 'Qada') day.qada++;
       if (record.status !== 'Excused' && record.status !== null) day.total++;
     });
     
     // Convert to status levels
     const statusMap = new Map<string, number>();
     dayMap.forEach((stats, date) => {
-      const prayedRatio = stats.total > 0 ? (stats.prayed + stats.jamah) / stats.total : 0;
+      const prayedRatio = stats.total > 0 ? (stats.prayed + stats.jamah + stats.qada) / stats.total : 0;
       const jamahRatio = stats.total > 0 ? stats.jamah / stats.total : 0;
       
       let status = 0;

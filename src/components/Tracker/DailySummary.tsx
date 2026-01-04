@@ -3,9 +3,10 @@ import { Check, X, Users, Clock } from 'lucide-react';
 
 interface DailySummaryProps {
   prayerStatuses: Record<PrayerName, PrayerStatus>;
+  gender?: 'male' | 'female' | null;
 }
 
-export function DailySummary({ prayerStatuses }: DailySummaryProps) {
+export function DailySummary({ prayerStatuses, gender }: DailySummaryProps) {
   const stats = PRAYER_NAMES.reduce(
     (acc, prayer) => {
       const status = prayerStatuses[prayer];
@@ -13,14 +14,16 @@ export function DailySummary({ prayerStatuses }: DailySummaryProps) {
       else if (status === 'Jamah') acc.jamah++;
       else if (status === 'Missed') acc.missed++;
       else if (status === 'Excused') acc.excused++;
+      else if (status === 'Qada') acc.qada++;
       else acc.pending++;
       return acc;
     },
-    { prayed: 0, jamah: 0, missed: 0, excused: 0, pending: 0 }
+    { prayed: 0, jamah: 0, missed: 0, excused: 0, qada: 0, pending: 0 }
   );
 
-  const totalLogged = stats.prayed + stats.jamah + stats.missed + stats.excused;
-  const totalPrayed = stats.prayed + stats.jamah;
+  const totalLogged = stats.prayed + stats.jamah + stats.missed + stats.excused + stats.qada;
+  const totalPrayed = stats.prayed + stats.jamah + stats.qada;
+  const showExcused = gender !== 'male';
   const progressPercentage = (totalLogged / 5) * 100;
 
   return (
@@ -48,7 +51,15 @@ export function DailySummary({ prayerStatuses }: DailySummaryProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-2 text-center">
+      <div className={`grid ${showExcused ? 'grid-cols-5' : 'grid-cols-4'} gap-2 text-center`}>
+        <div className="p-2 rounded-lg bg-jamah/10">
+          <div className="flex justify-center mb-1">
+            <Users className="w-4 h-4 text-jamah" />
+          </div>
+          <span className="text-lg font-bold text-jamah">{stats.jamah}</span>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Jamah</p>
+        </div>
+
         <div className="p-2 rounded-lg bg-prayed/10">
           <div className="flex justify-center mb-1">
             <Check className="w-4 h-4 text-prayed" />
@@ -57,12 +68,12 @@ export function DailySummary({ prayerStatuses }: DailySummaryProps) {
           <p className="text-xs text-gray-500 dark:text-gray-400">Prayed</p>
         </div>
 
-        <div className="p-2 rounded-lg bg-jamah/10">
+        <div className="p-2 rounded-lg bg-qada/10">
           <div className="flex justify-center mb-1">
-            <Users className="w-4 h-4 text-jamah" />
+            <Clock className="w-4 h-4 text-qada" />
           </div>
-          <span className="text-lg font-bold text-jamah">{stats.jamah}</span>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Jamah</p>
+          <span className="text-lg font-bold text-qada">{stats.qada}</span>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Qada</p>
         </div>
 
         <div className="p-2 rounded-lg bg-missed/10">
@@ -73,13 +84,15 @@ export function DailySummary({ prayerStatuses }: DailySummaryProps) {
           <p className="text-xs text-gray-500 dark:text-gray-400">Missed</p>
         </div>
 
-        <div className="p-2 rounded-lg bg-excused/10">
-          <div className="flex justify-center mb-1">
-            <Clock className="w-4 h-4 text-excused" />
+        {showExcused && (
+          <div className="p-2 rounded-lg bg-excused/10">
+            <div className="flex justify-center mb-1">
+              <Clock className="w-4 h-4 text-excused" />
+            </div>
+            <span className="text-lg font-bold text-excused">{stats.excused}</span>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Excused</p>
           </div>
-          <span className="text-lg font-bold text-excused">{stats.excused}</span>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Excused</p>
-        </div>
+        )}
       </div>
 
       {/* Prayers Completed Today */}

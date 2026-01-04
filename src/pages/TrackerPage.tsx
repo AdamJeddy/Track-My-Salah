@@ -117,7 +117,7 @@ export function TrackerPage() {
             />
 
             {/* Daily Summary */}
-            <DailySummary prayerStatuses={prayerStatuses} />
+            <DailySummary prayerStatuses={prayerStatuses} gender={gender} />
           </>
         )}
       </div>

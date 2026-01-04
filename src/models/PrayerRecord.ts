@@ -2,7 +2,7 @@
 export type PrayerName = 'Fajr' | 'Dhuhr' | 'Asr' | 'Maghrib' | 'Isha';
 
 // Prayer status enum
-export type PrayerStatus = 'Prayed' | 'Jamah' | 'Missed' | 'Excused' | null;
+export type PrayerStatus = 'Prayed' | 'Jamah' | 'Missed' | 'Excused' | 'Qada' | null;
 
 // Main PrayerRecord interface
 export interface PrayerRecord {
@@ -26,7 +26,8 @@ export interface DailyPrayerSummary {
 // Constants
 export const PRAYER_NAMES: PrayerName[] = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-export const PRAYER_STATUS_OPTIONS: PrayerStatus[] = ['Prayed', 'Jamah', 'Missed', 'Excused'];
+// Order dictates how status buttons render in UI
+export const PRAYER_STATUS_OPTIONS: PrayerStatus[] = ['Jamah', 'Prayed', 'Qada', 'Missed', 'Excused'];
 
 // Status color mapping for UI
 export const STATUS_COLORS: Record<NonNullable<PrayerStatus>, string> = {
@@ -34,6 +35,7 @@ export const STATUS_COLORS: Record<NonNullable<PrayerStatus>, string> = {
   Jamah: 'bg-jamah',
   Missed: 'bg-missed',
   Excused: 'bg-excused',
+  Qada: 'bg-qada',
 };
 
 export const STATUS_TEXT_COLORS: Record<NonNullable<PrayerStatus>, string> = {
@@ -41,4 +43,5 @@ export const STATUS_TEXT_COLORS: Record<NonNullable<PrayerStatus>, string> = {
   Jamah: 'text-jamah',
   Missed: 'text-missed',
   Excused: 'text-excused',
+  Qada: 'text-qada',
 };
