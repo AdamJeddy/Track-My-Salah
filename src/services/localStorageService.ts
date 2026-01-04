@@ -200,3 +200,15 @@ export async function getGenderPreference(): Promise<'male' | 'female' | null> {
 export async function setGenderPreference(gender: 'male' | 'female'): Promise<void> {
   await localforage.setItem('user_gender', gender);
 }
+
+/**
+ * Onboarding completion flag
+ */
+export async function getOnboardingStatus(): Promise<boolean> {
+  const value = await localforage.getItem<boolean>('onboarded');
+  return Boolean(value);
+}
+
+export async function setOnboardingStatus(completed: boolean): Promise<void> {
+  await localforage.setItem('onboarded', completed);
+}

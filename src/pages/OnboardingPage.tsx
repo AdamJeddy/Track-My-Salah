@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, BarChart3, CalendarClock, ShieldCheck, Sparkles, Users } from 'lucide-react';
-import { importRecords, setGenderPreference } from '../services/localStorageService';
+import { importRecords, setGenderPreference, setOnboardingStatus } from '../services/localStorageService';
 import { PRAYER_NAMES, PrayerRecord, PrayerStatus } from '../models/PrayerRecord';
 import { addDays, getTodayGregorian, gregorianToHijri } from '../utils/dateUtils';
 
@@ -72,6 +72,7 @@ export function OnboardingPage() {
         const records = buildSampleData();
         await importRecords(records);
       }
+      await setOnboardingStatus(true);
       navigate('/tracker');
     } finally {
       setLoading(false);
