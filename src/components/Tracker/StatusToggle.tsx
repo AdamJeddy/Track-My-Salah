@@ -1,3 +1,5 @@
+import { Check, RotateCcw, Shield, Users, X } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { PrayerStatus, PRAYER_STATUS_OPTIONS } from '../../models/PrayerRecord';
 
 interface StatusToggleProps {
@@ -7,12 +9,13 @@ interface StatusToggleProps {
   gender?: 'male' | 'female' | null;
 }
 
-const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, { 
-  label: string; 
-  bgActive: string; 
+export const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
+  label: string;
+  bgActive: string;
   bgInactive: string;
   textActive: string;
   textInactive: string;
+  icon: ReactNode;
 }> = {
   Prayed: {
     label: 'Prayed',
@@ -20,6 +23,7 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
     bgInactive: 'bg-gray-100 dark:bg-gray-700',
     textActive: 'text-white',
     textInactive: 'text-gray-600 dark:text-gray-300',
+    icon: <Check className="w-4 h-4" />,
   },
   Jamah: {
     label: 'Jamah',
@@ -27,6 +31,7 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
     bgInactive: 'bg-gray-100 dark:bg-gray-700',
     textActive: 'text-white',
     textInactive: 'text-gray-600 dark:text-gray-300',
+    icon: <Users className="w-4 h-4" />,
   },
   Missed: {
     label: 'Missed',
@@ -34,6 +39,7 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
     bgInactive: 'bg-gray-100 dark:bg-gray-700',
     textActive: 'text-white',
     textInactive: 'text-gray-600 dark:text-gray-300',
+    icon: <X className="w-4 h-4" />,
   },
   Excused: {
     label: 'Excused',
@@ -41,6 +47,7 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
     bgInactive: 'bg-gray-100 dark:bg-gray-700',
     textActive: 'text-white',
     textInactive: 'text-gray-600 dark:text-gray-300',
+    icon: <Shield className="w-4 h-4" />,
   },
   Qada: {
     label: 'Qada',
@@ -48,6 +55,7 @@ const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
     bgInactive: 'bg-gray-100 dark:bg-gray-700',
     textActive: 'text-white',
     textInactive: 'text-gray-600 dark:text-gray-300',
+    icon: <RotateCcw className="w-4 h-4" />,
   },
 };
 
