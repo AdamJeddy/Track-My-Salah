@@ -35,16 +35,16 @@ const getStatusOptions = (gender?: 'male' | 'female' | null) =>
 
 export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }: PrayerListProps) {
   const statusOptions = getStatusOptions(gender);
-  const gridTemplateColumns = `minmax(120px,1fr) repeat(${statusOptions.length}, minmax(0,1fr))`;
+  const gridTemplateColumns = `minmax(105px,1fr) repeat(${statusOptions.length}, minmax(0,1fr))`;
 
   return (
     <div className="space-y-4">
       {/* Mobile: icon header with aligned icon-only buttons */}
       <div className="md:hidden">
         <div className="overflow-x-auto">
-          <div className="space-y-2 min-w-[380px]">
+          <div className="space-y-2 min-w-[350px]">
             <div
-              className="grid items-center gap-2 px-1 text-[11px] text-gray-500 dark:text-gray-400"
+              className="grid items-center gap-1.5 px-1 text-[11px] text-gray-500 dark:text-gray-400"
               style={{ gridTemplateColumns }}
             >
               <span className="font-semibold text-gray-700 dark:text-gray-200">Prayer</span>
@@ -52,10 +52,7 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }:
                 const config = STATUS_CONFIG[status];
                 return (
                   <div key={status} className="flex flex-col items-center gap-0.5">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
-                      {config.icon}
-                    </div>
-                    <span className="text-[10px] font-medium leading-tight">{config.label}</span>
+                    <span className="text-[10px] font-semibold leading-tight text-gray-700 dark:text-gray-200">{config.label}</span>
                   </div>
                 );
               })}
@@ -64,10 +61,10 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }:
             {PRAYER_NAMES.map((prayer) => (
               <div
                 key={prayer}
-                className="grid items-center gap-2 rounded-xl bg-white p-3 shadow-sm dark:bg-gray-800"
+                className="grid items-center gap-1.5 rounded-xl bg-white p-3 shadow-sm dark:bg-gray-800"
                 style={{ gridTemplateColumns }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <div className="text-primary-600 dark:text-primary-400">
                     {PRAYER_ICONS[prayer]}
                   </div>
