@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trackmysalah-v7';
+const CACHE_NAME = 'trackmysalah-v8';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -64,6 +64,24 @@ self.addEventListener('fetch', (event) => {
         statusText: 'Service Unavailable',
         headers: new Headers({ 'Content-Type': 'text/plain' }),
       });
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+      return undefined;
     })
   );
 });

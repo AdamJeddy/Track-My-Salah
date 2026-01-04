@@ -12,7 +12,15 @@ import {
   Info,
   AlertTriangle,
   Users,
+  BellRing,
+  Clock,
 } from 'lucide-react';
+import {
+  getNotificationSettings,
+  requestNotificationPermission,
+  updateNotificationSettings,
+  type NotificationSettings,
+} from '../services/notificationService';
 
 export function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
@@ -21,7 +29,10 @@ export function SettingsPage() {
   const [importing, setImporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ enabled: false, time: '21:00' });
+  const [notificationLoading, setNotificationLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notificationsSupported, setNotificationsSupported] = useState<boolean>(true);
 
   // Load gender preference on mount
   useEffect(() => {
@@ -29,7 +40,19 @@ export function SettingsPage() {
       const savedGender = await getGenderPreference();
       setGender(savedGender);
     };
+    const loadNotifications = async () => {
+      try {
+        const settings = await getNotificationSettings();
+        setNotificationSettings(settings);
+      } catch (error) {
+        console.error('Failed to load notification settings:', error);
+      }
+    };
+
+    setNotificationsSupported(typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator);
+
     loadGender();
+    loadNotifications();
   }, []);
 
   // Handle gender change
@@ -41,6 +64,54 @@ export function SettingsPage() {
     } catch (error) {
       console.error('Failed to update gender:', error);
       setMessage({ type: 'error', text: 'Failed to update gender preference' });
+    }
+  };
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    setNotificationLoading(true);
+    setMessage(null);
+
+    try {
+      let nextSettings: NotificationSettings = { ...notificationSettings, enabled };
+
+      if (enabled) {
+        const permission = await requestNotificationPermission();
+        if (permission !== 'granted') {
+          setMessage({ type: 'error', text: 'Notifications blocked. Please enable permissions in your browser.' });
+          nextSettings = { ...nextSettings, enabled: false };
+        }
+      }
+
+      await updateNotificationSettings(nextSettings);
+      setNotificationSettings(nextSettings);
+
+      if (nextSettings.enabled) {
+        setMessage({ type: 'success', text: 'Daily reminder enabled.' });
+      } else {
+        setMessage({ type: 'success', text: 'Daily reminder disabled.' });
+      }
+    } catch (error) {
+      console.error('Failed to update notifications:', error);
+      setMessage({ type: 'error', text: 'Could not update notification preference.' });
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const handleNotificationTimeChange = async (time: string) => {
+    setNotificationLoading(true);
+    setMessage(null);
+
+    try {
+      const nextSettings: NotificationSettings = { ...notificationSettings, time };
+      await updateNotificationSettings(nextSettings);
+      setNotificationSettings(nextSettings);
+      setMessage({ type: 'success', text: 'Reminder time updated.' });
+    } catch (error) {
+      console.error('Failed to update reminder time:', error);
+      setMessage({ type: 'error', text: 'Could not update reminder time.' });
+    } finally {
+      setNotificationLoading(false);
     }
   };
 
@@ -221,6 +292,53 @@ export function SettingsPage() {
                 Female
               </button>
             </div>
+
+            <div className="h-px bg-gray-200 dark:bg-gray-700" />
+
+            <div className="flex items-center gap-3 mb-3">
+              <BellRing className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">Daily reminder</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Get a daily nudge to log your prayers
+                </p>
+              </div>
+            </div>
+
+            {!notificationsSupported && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Notifications are not supported in this browser.
+              </p>
+            )}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button
+                onClick={() => handleNotificationToggle(!notificationSettings.enabled)}
+                disabled={!notificationsSupported || notificationLoading}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors text-left sm:text-center border ${
+                  notificationSettings.enabled
+                    ? 'bg-primary-600 text-white border-primary-600'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
+                } disabled:opacity-50`}
+              >
+                {notificationSettings.enabled ? 'Disable reminder' : 'Enable reminder'}
+              </button>
+
+              <div className="flex items-center gap-2 sm:w-40">
+                <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="time"
+                  value={notificationSettings.time}
+                  onChange={(e) => handleNotificationTimeChange(e.target.value)}
+                  disabled={!notificationSettings.enabled || notificationLoading}
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white disabled:opacity-50"
+                />
+              </div>
+            </div>
+          
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Note: Reminders can only fire while the app is open due to platform limits. Keep the tab or PWA open to receive the daily notification.
+            </p>
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
@@ -369,4 +487,5 @@ export function SettingsPage() {
       )}
     </div>
   );
+
 }

@@ -5,6 +5,7 @@ import { BottomNav } from './components/Navigation';
 import { InstallPrompt } from './components/InstallPrompt';
 import { TrackerPage, StatsPage, SettingsPage, OnboardingPage } from './pages';
 import { getGenderPreference, getOnboardingStatus } from './services/localStorageService';
+import { applyNotificationScheduler, getNotificationSettings } from './services/notificationService';
 
 function AppShell() {
   const location = useLocation();
@@ -20,6 +21,11 @@ function AppShell() {
         getOnboardingStatus(),
         getGenderPreference(),
       ]);
+
+      // Apply notification scheduler separately to avoid blocking onboarding flow
+      getNotificationSettings()
+        .then((settings) => applyNotificationScheduler(settings))
+        .catch((error) => console.error('Notification scheduler init failed:', error));
 
       if (!active) return;
 
