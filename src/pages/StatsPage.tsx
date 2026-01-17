@@ -28,21 +28,19 @@ export function StatsPage() {
   const [dayRecords, setDayRecords] = useState<PrayerRecord[]>([]);
 
   const missedGroups = useMemo(() => {
-    const map = new Map<string, { gregorian: string; hijri: string; missed: string[]; qada: string[] }>();
+    const map = new Map<string, { gregorian: string; hijri: string; missed: string[] }>();
 
     records.forEach((record) => {
-      if (record.status === 'Missed' || record.status === 'Qada') {
+      if (record.status === 'Missed') {
         if (!map.has(record.gregorian_date)) {
           map.set(record.gregorian_date, {
             gregorian: record.gregorian_date,
             hijri: record.hijri_date,
             missed: [],
-            qada: [],
           });
         }
         const entry = map.get(record.gregorian_date)!;
-        if (record.status === 'Missed') entry.missed.push(record.prayer_name);
-        if (record.status === 'Qada') entry.qada.push(record.prayer_name);
+        entry.missed.push(record.prayer_name);
       }
     });
 
@@ -133,17 +131,17 @@ export function StatsPage() {
         {/* Statistics Card */}
         <StatisticsCard records={records} />
 
-        {/* Missed and Qada Log */}
+        {/* Missed Log */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Missed & Qada</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Recent prayers that were missed or made up</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Missed Prayers</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Recent prayers that were missed</p>
             </div>
           </div>
 
           {missedGroups.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400">No missed or qada entries yet.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">No missed prayers yet.</p>
           ) : (
             <div className="space-y-3">
               {missedGroups.map((group) => (
@@ -154,7 +152,7 @@ export function StatsPage() {
                       <p className="text-xs text-primary-600 dark:text-primary-400">{getFormattedHijriDate(group.gregorian)}</p>
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {group.missed.length + group.qada.length} items
+                      {group.missed.length} {group.missed.length === 1 ? 'prayer' : 'prayers'}
                     </div>
                   </div>
 
@@ -162,11 +160,6 @@ export function StatsPage() {
                     {group.missed.map((prayer) => (
                       <span key={`${group.gregorian}-${prayer}-missed`} className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
                         {prayer} — Missed
-                      </span>
-                    ))}
-                    {group.qada.map((prayer) => (
-                      <span key={`${group.gregorian}-${prayer}-qada`} className="px-2 py-1 rounded-full text-xs font-medium bg-qada/10 text-qada">
-                        {prayer} — Qada
                       </span>
                     ))}
                   </div>
