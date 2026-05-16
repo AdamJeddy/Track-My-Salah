@@ -1,8 +1,14 @@
-const CACHE_NAME = 'trackmysalah-v9';
+const CACHE_NAME = 'trackmysalah-v10';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/favicon.ico',
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/apple-touch-icon.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
 ];
 
 // Install event - cache static assets
@@ -34,31 +40,49 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
+  // Handle navigation requests: serve app shell for SPA routes
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      (async () => {
+        try {
+          // Try network first to get latest
+          const networkResponse = await fetch(event.request);
+          // Cache the latest index if applicable
+          const cache = await caches.open(CACHE_NAME);
+          cache.put('/index.html', networkResponse.clone());
+          return networkResponse;
+        } catch (_) {
+          // Fallback to cached index.html for offline navigation
+          const cached = await caches.match('/index.html');
+          if (cached) return cached;
+          return new Response('Offline - App shell not available', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({ 'Content-Type': 'text/plain' }),
+          });
+        }
+      })()
+    );
+    return;
+  }
+
+  // For other requests: cache-first, then network
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Return cached version or fetch from network
       if (response) {
         return response;
       }
-
-      return fetch(event.request).then((response) => {
-        // Don't cache non-successful responses or non-GET requests
-        if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
-          return response;
+      return fetch(event.request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || event.request.method !== 'GET') {
+          return networkResponse;
         }
-
-        // Clone the response
-        const responseToCache = response.clone();
-
+        const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
-
-        return response;
+        return networkResponse;
       });
     }).catch(() => {
-      // If both cache and network fail, show offline page
-      // For now, just return a basic offline response
       return new Response('Offline - Please check your connection', {
         status: 503,
         statusText: 'Service Unavailable',

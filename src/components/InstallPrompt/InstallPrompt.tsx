@@ -7,6 +7,14 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 declare global {
+  interface Navigator {
+    standalone?: boolean;
+  }
+
+  interface Window {
+    MSStream?: unknown;
+  }
+
   interface WindowEventMap {
     beforeinstallprompt: BeforeInstallPromptEvent;
   }
@@ -21,11 +29,11 @@ export function InstallPrompt() {
   useEffect(() => {
     // Check if already installed (standalone mode)
     const standalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone === true;
+      || window.navigator.standalone === true;
     setIsStandalone(standalone);
 
     // Check if iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     setIsIOS(iOS);
 
     // Check if user has dismissed the prompt before
