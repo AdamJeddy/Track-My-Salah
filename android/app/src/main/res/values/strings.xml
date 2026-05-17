@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TrackMySalah</string>
+    <string name="title_activity_main">TrackMySalah</string>
+    <string name="package_name">app.trackmysalah</string>
+    <string name="custom_url_scheme">app.trackmysalah</string>
+</resources>

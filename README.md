@@ -1,37 +1,88 @@
 # TrackMySalah
 
-## Why This Was Created
-TrackMySalah was built to make it simple to log the five daily prayers with an experience that is private, offline-first, and fast. Many prayer trackers are account-based or cloud-first; this app keeps everything on the device so users can focus on consistency, not setup.
+TrackMySalah is an offline-first prayer tracking app built with React, TypeScript, and Vite.
 
-## About the App
-TrackMySalah is a Progressive Web App that lets you log each prayer with a single tap, view streaks and consistency, and visualize your year with a GitHub-style heatmap. It supports both Gregorian and Hijri dates, works offline via IndexedDB and a service worker, and offers CSV export/import so users control their data.
+The project is shipped as:
 
-**Live App:** [https://track-my-salah.vercel.app/](https://track-my-salah.vercel.app/)  
+- A Progressive Web App (web)
+- A Capacitor Android app bundle for Google Play
 
-## Core Features
-- Log statuses for Fajr, Dhuhr, Asr, Maghrib, Isha: Prayed, Jamah, Missed, Excused
-- Dual calendar display (Gregorian and Hijri) on the tracker and stats views
-- Yearly heatmap and monthly grid visualization with streaks and consistency metrics
-- Offline-first data storage using IndexedDB (via localforage)
-- CSV export and import for portability and backups
-- Dark mode toggle
+## Features
+
+- Track five daily prayers with status logging
+- Gregorian and Hijri date support
+- Monthly and yearly statistics with heatmap views
+- Local-only storage (privacy-first)
+- Offline support via service worker (web) and embedded assets (native)
+- Daily reminder notifications (web and native)
+- CSV export/import
 
 ## Tech Stack
-- React + TypeScript (Vite)
+
+- React 18 + TypeScript
+- Vite
 - Tailwind CSS
-- IndexedDB via localforage
-- Date handling with moment and moment-hijri
-- react-calendar-heatmap for yearly visualization
+- localforage (IndexedDB)
+- Capacitor 6 + Local Notifications
 
-## Getting Started
-1) Install dependencies: `npm install`
-2) Run the dev server: `npm run dev`
-3) Open the app: http://localhost:5173
+## Local Development
 
-## Build for Production
-- `npm run build`
-- Preview production build: `npm run preview`
+```bash
+npm install
+npm run dev
+```
 
-## PWA and Data
-- Manifest and service worker are configured for installability and offline use.
-- All prayer data stays on the device; no accounts or remote storage are used.
+Production build:
+
+```bash
+npm run build
+npm run preview
+```
+
+Lint:
+
+```bash
+npm run lint
+```
+
+## Android (Capacitor) Workflow
+
+Sync web assets and native config:
+
+```bash
+npm run build
+npx cap sync android
+```
+
+Open Android Studio:
+
+```bash
+npx cap open android
+```
+
+### Play Store Requirements (Important)
+
+- targetSdkVersion must be at least 35
+- versionCode must increase on every upload
+
+Current Android values are set in android/variables.gradle and android/app/build.gradle.
+
+## Release Notes
+
+- If Play Console says versionCode is already used, increment versionCode in android/app/build.gradle.
+- Rebuild a new signed AAB after any versionCode, targetSdkVersion, or app config change.
+- Deobfuscation mapping upload is optional unless minifyEnabled is true.
+
+## Privacy
+
+Privacy policy page is available at public/privacy.html.
+
+## Related Docs
+
+- CAPACITOR_GUIDE.md
+- PLAY_STORE_GUIDE.md
+- MASKABLE_ICONS.md
+
+## License
+
+MIT

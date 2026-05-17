@@ -3,6 +3,12 @@ import momentHijri from 'moment-hijri';
 // Use the moment-hijri instance directly (it extends moment)
 const moment = momentHijri;
 
+type HijriMoment = ReturnType<typeof moment> & {
+  iYear?: () => number;
+  iMonth?: () => number;
+  iDate?: () => number;
+};
+
 // Force English locale to get ASCII numerals from moment-hijri
 moment.locale('en');
 
@@ -27,8 +33,7 @@ function stripHijriPrefixes(value: string): string {
   return value.replace(/i(?=[\p{L}0-9\u0660-\u0669])/gu, '');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatHijri(date: any, pattern: string): string {
+function formatHijri(date: string | Date, pattern: string): string {
   return stripHijriPrefixes(moment(date).format(pattern));
 }
 
@@ -104,7 +109,7 @@ export function getTodayGregorian(): string {
  * Get today's Hijri date in iYYYY-iMM-iDD format
  */
 export function getTodayHijri(): string {
-  return formatHijri(moment(), 'iYYYY-iMM-iDD');
+  return stripHijriPrefixes(moment().format('iYYYY-iMM-iDD'));
 }
 
 /**
@@ -144,7 +149,7 @@ export function getHijriYearRange(hijriYear: number): { start: string; end: stri
  */
 export function getCurrentHijriYear(): number {
   try {
-    const m = moment() as any;
+    const m = moment() as HijriMoment;
     // moment-hijri stores hijri data in _d._hijri or via iYear() method
     // If iYear is not available, parse from format with Arabic-to-English conversion
     if (typeof m.iYear === 'function') {
@@ -272,7 +277,7 @@ export function getHijriMonthStartDay(hijriYear: number, hijriMonth: number): nu
  */
 export function getCurrentHijriMonth(): number {
   try {
-    const m = moment() as any;
+    const m = moment() as HijriMoment;
     if (typeof m.iMonth === 'function') {
       return m.iMonth() + 1; // iMonth is 0-indexed
     }
@@ -298,7 +303,7 @@ export function getCurrentHijriMonth(): number {
  * Get the Hijri day number for a Gregorian date
  */
 export function getHijriDay(gregorianDate: string): number {
-  const m = moment(gregorianDate) as any;
+  const m = moment(gregorianDate) as HijriMoment;
   if (typeof m.iDate === 'function') {
     return m.iDate();
   }

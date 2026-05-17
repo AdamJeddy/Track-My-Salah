@@ -1,0 +1,28 @@
+{
+  "packageId": "app.trackmysalah",
+  "host": "track-my-salah.vercel.app",
+  "name": "TrackMySalah",
+  "launcherName": "TrackMySalah",
+  "display": "standalone",
+  "themeColor": "#16a34a",
+  "navigationColor": "#16a34a",
+  "backgroundColor": "#f9fafb",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://track-my-salah.vercel.app/android-chrome-512x512.png",
+  "maskableIconUrl": "https://track-my-salah.vercel.app/android-chrome-512x512-maskable.png",
+  "monochromeIconUrl": "https://track-my-salah.vercel.app/android-chrome-512x512-maskable.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://track-my-salah.vercel.app/manifest.json",
+  "fallbackType": "customtabs",
+  "enableSiteSettingsShortcut": true,
+  "orientation": "portrait"
+}

@@ -14,6 +14,10 @@ import momentHijri from 'moment-hijri';
 const moment = momentHijri;
 moment.locale('en');
 
+type HijriMoment = ReturnType<typeof moment> & {
+  iYear?: () => number;
+};
+
 export function StatsPage() {
   const [records, setRecords] = useState<PrayerRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +83,7 @@ export function StatsPage() {
         return recordYear === selectedYear;
       } else {
         // For Hijri, parse from formatted iYYYY with Arabic numeral conversion
-        const m = moment(r.gregorian_date) as any;
+        const m = moment(r.gregorian_date) as HijriMoment;
         let hijriYear: number;
         
         if (typeof m.iYear === 'function') {
@@ -88,8 +92,8 @@ export function StatsPage() {
           const hijriStr = m.format('iYYYY');
           // Convert Arabic numerals to ASCII using char codes
           const arabicZeroCode = '٠'.charCodeAt(0); // 1632
-          const englishStr = (Array.from(hijriStr) as string[])
-            .map((char: string) => {
+          const englishStr = Array.from(hijriStr)
+            .map((char) => {
               const code = char.charCodeAt(0);
               if (code >= arabicZeroCode && code <= arabicZeroCode + 9) {
                 return String(code - arabicZeroCode);
