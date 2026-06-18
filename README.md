@@ -79,6 +79,7 @@ Privacy policy page is available at public/privacy.html.
 
 ## Related Docs
 
+- CODEBASE_GUIDE.md
 - CAPACITOR_GUIDE.md
 - PLAY_STORE_GUIDE.md
 - MASKABLE_ICONS.md
