@@ -7,6 +7,14 @@ const isNative = Capacitor.isNativePlatform();
 
 export type NotificationSettings = NotificationSettingsType;
 
+export const notificationsSupported = isNative
+  ? true
+  : typeof window !== 'undefined' &&
+    'Notification' in window &&
+    'serviceWorker' in navigator;
+
+export const notificationsPlatform = isNative ? 'native' : 'web';
+
 export const getNotificationSettings = isNative
   ? native.getNotificationSettings
   : web.getNotificationSettings;
