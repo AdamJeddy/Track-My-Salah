@@ -1,50 +1,16 @@
-import { PrayerRecord } from '../../models/PrayerRecord';
+import { PrayerRecord, PRAYER_NAMES } from '../../models/PrayerRecord';
 import { Flame, Trophy, Target } from 'lucide-react';
+import { getFirstRecordDate, getTimelineDays } from '../../utils/statsUtils';
+import { getCompactGregorianDate } from '../../utils/dateUtils';
 
 interface StatisticsCardProps {
   records: PrayerRecord[];
 }
 
-interface DayStats {
-  date: string;
-  prayed: number;
-  jamah: number;
-  missed: number;
-  excused: number;
-  qada: number;
-  total: number;
-}
-
 function calculateStats(records: PrayerRecord[]) {
-  // Group records by date
-  const dayMap = new Map<string, DayStats>();
-  
-  records.forEach((record) => {
-    if (!dayMap.has(record.gregorian_date)) {
-      dayMap.set(record.gregorian_date, {
-        date: record.gregorian_date,
-        prayed: 0,
-        jamah: 0,
-        missed: 0,
-        excused: 0,
-        qada: 0,
-        total: 0,
-      });
-    }
-    
-    const day = dayMap.get(record.gregorian_date)!;
-    if (record.status === 'Prayed') day.prayed++;
-    else if (record.status === 'Jamah') day.jamah++;
-    else if (record.status === 'Missed') day.missed++;
-    else if (record.status === 'Excused') day.excused++;
-    else if (record.status === 'Qada') day.qada++;
-    day.total++;
-  });
-  
-  // Sort by date
-  const sortedDays = Array.from(dayMap.values()).sort((a, b) => 
-    a.date.localeCompare(b.date)
-  );
+  const sortedDays = getTimelineDays(records);
+  const firstRecordedDate = getFirstRecordDate(records);
+  const missedOrUnrecordedPrayers = sortedDays.reduce((sum, day) => sum + day.missed + day.unrecorded, 0);
   
   // Calculate streaks (days where all non-excused prayers were prayed)
   let currentStreak = 0;
@@ -54,10 +20,9 @@ function calculateStats(records: PrayerRecord[]) {
   // A "good day" is when all logged prayers (excluding excused) are Prayed or Jamah
   for (let i = sortedDays.length - 1; i >= 0; i--) {
     const day = sortedDays[i];
-    const totalRelevant = day.total - day.excused;
+    const totalRelevant = Math.max(PRAYER_NAMES.length - day.excused, 0);
     
-    // Check if this is a "good day"
-    const isGoodDay = totalRelevant > 0 && day.missed === 0;
+    const isGoodDay = totalRelevant > 0 && day.completed === totalRelevant && day.missed === 0 && day.unrecorded === 0;
     
     if (isGoodDay) {
       if (i === sortedDays.length - 1 || tempStreak > 0) {
@@ -79,17 +44,10 @@ function calculateStats(records: PrayerRecord[]) {
   let totalRelevant = 0;
   let totalQada = 0;
   
-  records.forEach((record) => {
-    if (record.status === 'Prayed' || record.status === 'Jamah') {
-      totalPrayed++;
-    }
-    if (record.status === 'Qada') {
-      totalPrayed++;
-      totalQada++;
-    }
-    if (record.status !== 'Excused' && record.status !== null) {
-      totalRelevant++;
-    }
+  sortedDays.forEach((day) => {
+    totalPrayed += day.completed;
+    totalQada += day.qada;
+    totalRelevant += Math.max(PRAYER_NAMES.length - day.excused, 0);
   });
   
   const consistency = totalRelevant > 0 
@@ -100,9 +58,11 @@ function calculateStats(records: PrayerRecord[]) {
     currentStreak,
     bestStreak,
     consistency,
-    totalDays: dayMap.size,
+    totalDays: sortedDays.length,
     totalPrayed,
     totalQada,
+    missedOrUnrecordedPrayers,
+    firstRecordedDate,
   };
 }
 
@@ -159,6 +119,12 @@ export function StatisticsCard({ records }: StatisticsCardProps) {
       {/* Additional Info */}
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex justify-between text-sm">
+          <span className="text-gray-600 dark:text-gray-400">First Record</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {stats.firstRecordedDate ? getCompactGregorianDate(stats.firstRecordedDate) : 'Not yet'}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm mt-2">
           <span className="text-gray-600 dark:text-gray-400">Days Tracked</span>
           <span className="font-medium text-gray-900 dark:text-white">{stats.totalDays}</span>
         </div>
@@ -166,10 +132,14 @@ export function StatisticsCard({ records }: StatisticsCardProps) {
           <span className="text-gray-600 dark:text-gray-400">Prayers Completed</span>
           <span className="font-medium text-gray-900 dark:text-white">{stats.totalPrayed}</span>
         </div>
-            <div className="flex justify-between text-sm mt-2">
-              <span className="text-gray-600 dark:text-gray-400">Qada</span>
-              <span className="font-medium text-gray-900 dark:text-white">{stats.totalQada}</span>
-            </div>
+        <div className="flex justify-between text-sm mt-2">
+          <span className="text-gray-600 dark:text-gray-400">Qada</span>
+          <span className="font-medium text-gray-900 dark:text-white">{stats.totalQada}</span>
+        </div>
+        <div className="flex justify-between text-sm mt-2">
+          <span className="text-gray-600 dark:text-gray-400">Missed + Unrecorded Prayers</span>
+          <span className="font-medium text-gray-900 dark:text-white">{stats.missedOrUnrecordedPrayers}</span>
+        </div>
       </div>
     </div>
   );
