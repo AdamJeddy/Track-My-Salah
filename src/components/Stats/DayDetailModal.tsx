@@ -1,10 +1,14 @@
 import { X } from 'lucide-react';
 import { PrayerRecord, PrayerName, PrayerStatus, PRAYER_NAMES } from '../../models/PrayerRecord';
-import { getFormattedGregorianDate, getFormattedHijriDate } from '../../utils/dateUtils';
+import { getFormattedGregorianDate, getFormattedHijriDate, isFutureDate } from '../../utils/dateUtils';
+import { StatusToggle } from '../Tracker/StatusToggle';
 
 interface DayDetailModalProps {
   date: string;
   records: PrayerRecord[];
+  gender?: 'male' | 'female' | null;
+  onStatusChange?: (date: string, prayerName: PrayerName, status: PrayerStatus) => void;
+  onOpenInTracker?: (date: string) => void;
   onClose: () => void;
 }
 
@@ -16,7 +20,8 @@ const STATUS_BADGE: Record<NonNullable<PrayerStatus>, string> = {
   Qada: 'bg-qada/20 text-purple-700 dark:text-purple-400',
 };
 
-export function DayDetailModal({ date, records, onClose }: DayDetailModalProps) {
+export function DayDetailModal({ date, records, gender, onStatusChange, onOpenInTracker, onClose }: DayDetailModalProps) {
+  const disabled = isFutureDate(date);
   // Get status for each prayer
   const prayerStatuses: Record<PrayerName, PrayerStatus> = {
     Fajr: null,
@@ -63,19 +68,29 @@ export function DayDetailModal({ date, records, onClose }: DayDetailModalProps) 
             return (
               <div
                 key={prayer}
-                className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                className="space-y-2 py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
               >
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {prayer}
-                </span>
-                {status ? (
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_BADGE[status]}`}>
-                    {status}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {prayer}
                   </span>
-                ) : (
-                  <span className="px-3 py-1 rounded-full text-sm text-gray-400 dark:text-gray-500">
-                    Not logged
-                  </span>
+                  {status ? (
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_BADGE[status]}`}>
+                      {status}
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-sm text-gray-400 dark:text-gray-500">
+                      Not logged
+                    </span>
+                  )}
+                </div>
+                {onStatusChange && (
+                  <StatusToggle
+                    currentStatus={status}
+                    onStatusChange={(nextStatus) => onStatusChange(date, prayer, nextStatus)}
+                    disabled={disabled}
+                    gender={gender}
+                  />
                 )}
               </div>
             );
@@ -86,10 +101,17 @@ export function DayDetailModal({ date, records, onClose }: DayDetailModalProps) 
         <div className="px-4 pb-4">
           <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-center">
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              {records.filter((r) => r.status === 'Prayed' || r.status === 'Jamah' || r.status === 'Qada').length} of{' '}
-              {records.filter((r) => r.status !== 'Excused' && r.status !== null).length || 5} prayers completed
+              {records.filter((r) => r.status === 'Prayed' || r.status === 'Jamah' || r.status === 'Qada').length} of 5 prayers completed
             </span>
           </div>
+          {onOpenInTracker && (
+            <button
+              onClick={() => onOpenInTracker(date)}
+              className="mt-3 w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+            >
+              Go to day
+            </button>
+          )}
         </div>
       </div>
     </div>
