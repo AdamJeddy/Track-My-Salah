@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { getAllRecords, importRecords, clearAllRecords, getGenderPreference, setGenderPreference } from '../services/localStorageService';
-import { exportToCSV, downloadCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
+import { exportToCSV, exportCSVFile, parseCSV, readFileAsText } from '../utils/exportUtils';
 import {
   Moon,
   Sun,
@@ -138,9 +138,13 @@ export function SettingsPage() {
       
       const csv = exportToCSV(records);
       const filename = `trackmysalah_export_${new Date().toISOString().split('T')[0]}.csv`;
-      downloadCSV(csv, filename);
+      const exportResult = await exportCSVFile(csv, filename);
       
-      setMessage({ type: 'success', text: `Exported ${records.length} records` });
+      if (exportResult.mode === 'saved') {
+        setMessage({ type: 'success', text: `Exported ${records.length} records to Documents/TrackMySalah` });
+      } else {
+        setMessage({ type: 'success', text: `Downloaded ${records.length} records` });
+      }
     } catch (error) {
       console.error('Export failed:', error);
       setMessage({ type: 'error', text: 'Export failed. Please try again.' });
