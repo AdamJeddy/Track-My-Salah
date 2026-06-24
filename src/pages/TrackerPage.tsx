@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { PrayerName, PrayerStatus } from '../models/PrayerRecord';
 import { getTodayGregorian, addDays, isFutureDate } from '../utils/dateUtils';
 import { getRecordsByDate, saveRecord, getGenderPreference } from '../services/localStorageService';
 import { DualDateHeader, PrayerList, DailySummary } from '../components/Tracker';
 
 export function TrackerPage() {
-  const [selectedDate, setSelectedDate] = useState(getTodayGregorian());
+  const location = useLocation();
+  const initialDate = (location.state as { selectedDate?: string } | null)?.selectedDate ?? getTodayGregorian();
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [prayerStatuses, setPrayerStatuses] = useState<Record<PrayerName, PrayerStatus>>({
     Fajr: null,
     Dhuhr: null,

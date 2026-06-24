@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { getAllRecords, importRecords, clearAllRecords, getGenderPreference, setGenderPreference } from '../services/localStorageService';
-import { exportToCSV, downloadCSV, parseCSV, readFileAsText } from '../utils/exportUtils';
+import { exportToCSV, exportCSVFile, parseCSV, readFileAsText } from '../utils/exportUtils';
 import {
   Moon,
   Sun,
@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import {
   getNotificationSettings,
+  notificationsPlatform,
+  notificationsSupported as notificationSupportAvailable,
   requestNotificationPermission,
   updateNotificationSettings,
   type NotificationSettings,
@@ -49,7 +51,7 @@ export function SettingsPage() {
       }
     };
 
-    setNotificationsSupported(typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator);
+    setNotificationsSupported(notificationSupportAvailable);
 
     loadGender();
     loadNotifications();
@@ -77,7 +79,13 @@ export function SettingsPage() {
       if (enabled) {
         const permission = await requestNotificationPermission();
         if (permission !== 'granted') {
-          setMessage({ type: 'error', text: 'Notifications blocked. Please enable permissions in your browser.' });
+          setMessage({
+            type: 'error',
+            text:
+              notificationsPlatform === 'native'
+                ? 'Notifications blocked. Please enable app notifications in Android settings.'
+                : 'Notifications blocked. Please enable permissions in your browser.',
+          });
           nextSettings = { ...nextSettings, enabled: false };
         }
       }
@@ -130,9 +138,13 @@ export function SettingsPage() {
       
       const csv = exportToCSV(records);
       const filename = `trackmysalah_export_${new Date().toISOString().split('T')[0]}.csv`;
-      downloadCSV(csv, filename);
+      const exportResult = await exportCSVFile(csv, filename);
       
-      setMessage({ type: 'success', text: `Exported ${records.length} records` });
+      if (exportResult.mode === 'saved') {
+        setMessage({ type: 'success', text: `Exported ${records.length} records to Documents/TrackMySalah` });
+      } else {
+        setMessage({ type: 'success', text: `Downloaded ${records.length} records` });
+      }
     } catch (error) {
       console.error('Export failed:', error);
       setMessage({ type: 'error', text: 'Export failed. Please try again.' });
@@ -307,7 +319,7 @@ export function SettingsPage() {
 
             {!notificationsSupported && (
               <p className="text-sm text-red-600 dark:text-red-400">
-                Notifications are not supported in this browser.
+                Notifications are not supported on this device or runtime.
               </p>
             )}
 
@@ -337,7 +349,9 @@ export function SettingsPage() {
             </div>
           
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Note: Reminders can only fire while the app is open due to platform limits. Keep the tab or PWA open to receive the daily notification.
+              {notificationsPlatform === 'native'
+                ? 'On Android, reminders use the native local notification system.'
+                : 'On web, reminders can only fire while the app is open due to platform limits. Keep the tab or PWA open to receive the daily notification.'}
             </p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PrayerRecord } from '../../models/PrayerRecord';
+import { PrayerRecord, PRAYER_NAMES } from '../../models/PrayerRecord';
 import { 
   getDatesInMonth, 
   getMonthYearDisplay, 
@@ -10,6 +10,7 @@ import {
   getHijriMonthStartDay,
   getHijriDay
 } from '../../utils/dateUtils';
+import { buildTimelineDayMap, getTrackingRange } from '../../utils/statsUtils';
 import momentHijri from 'moment-hijri';
 
 const moment = momentHijri;
@@ -33,31 +34,31 @@ export function MonthlyGrid({ records, year, month, calendarMode = 'gregorian', 
   }, [year, month, calendarMode]);
   
   // Group records by date
-  const recordsByDate = useMemo(() => {
-    const map = new Map<string, PrayerRecord[]>();
-    records.forEach((record) => {
-      if (!map.has(record.gregorian_date)) {
-        map.set(record.gregorian_date, []);
-      }
-      map.get(record.gregorian_date)!.push(record);
-    });
-    return map;
-  }, [records]);
+  const trackingRange = useMemo(() => getTrackingRange(records), [records]);
+
+  const timelineDayMap = useMemo(() => buildTimelineDayMap(records), [records]);
 
   // Calculate day status
-  const getDayStatus = (date: string): 'excellent' | 'good' | 'partial' | 'poor' | 'empty' => {
-    const dayRecords = recordsByDate.get(date) || [];
-    if (dayRecords.length === 0) return 'empty';
-    
-    const prayed = dayRecords.filter((r) => r.status === 'Prayed' || r.status === 'Jamah' || r.status === 'Qada').length;
-    const relevant = dayRecords.filter((r) => r.status !== 'Excused' && r.status !== null).length;
-    
+  const getDayStatus = (date: string): 'excellent' | 'good' | 'partial' | 'poor' | 'unrecorded' | 'empty' => {
+    const day = timelineDayMap.get(date);
+    const isTrackedDate = Boolean(trackingRange && date >= trackingRange.startDate && date <= trackingRange.endDate);
+
+    if (!day) {
+      return isTrackedDate ? 'unrecorded' : 'empty';
+    }
+
+    if (day.missed > 0) return 'poor';
+    if (day.unrecorded > 0) return 'unrecorded';
+
+    const prayed = day.completed;
+    const relevant = Math.max(PRAYER_NAMES.length - day.excused, 0);
+
     if (relevant === 0) return 'empty';
     
     const ratio = prayed / relevant;
-    if (ratio >= 0.9) return 'excellent';
-    if (ratio >= 0.7) return 'good';
-    if (ratio >= 0.4) return 'partial';
+    if (ratio === 1) return 'excellent';
+    if (ratio >= 0.8) return 'good';
+    if (ratio > 0) return 'partial';
     return 'poor';
   };
 
@@ -66,6 +67,7 @@ export function MonthlyGrid({ records, year, month, calendarMode = 'gregorian', 
     good: 'bg-green-300 text-gray-900',
     partial: 'bg-yellow-300 text-gray-900',
     poor: 'bg-red-300 text-gray-900',
+    unrecorded: 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-100',
     empty: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
   };
 
@@ -194,6 +196,10 @@ export function MonthlyGrid({ records, year, month, calendarMode = 'gregorian', 
         <div className="flex items-center gap-1">
           <div className="w-3 h-3 rounded bg-red-300" />
           <span className="text-gray-600 dark:text-gray-400">Poor</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded bg-gray-300 dark:bg-gray-600" />
+          <span className="text-gray-600 dark:text-gray-400">Unrecorded</span>
         </div>
       </div>
     </div>

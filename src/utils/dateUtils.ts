@@ -99,6 +99,14 @@ export function getFormattedGregorianDate(date: string | Date): string {
 }
 
 /**
+ * Get compact Gregorian date for dense stats rows.
+ */
+export function getCompactGregorianDate(date: string | Date): string {
+  const m = moment(date);
+  return m.format('D MMM YYYY');
+}
+
+/**
  * Get today's date in YYYY-MM-DD format
  */
 export function getTodayGregorian(): string {

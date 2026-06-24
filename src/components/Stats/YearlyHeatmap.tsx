@@ -1,4 +1,4 @@
-import { PrayerRecord } from '../../models/PrayerRecord';
+import { PrayerRecord, PRAYER_NAMES } from '../../models/PrayerRecord';
 import { useMemo } from 'react';
 import { 
   getDatesInMonth, 
@@ -6,6 +6,7 @@ import {
   getHijriMonthStartDay,
   getHijriDay
 } from '../../utils/dateUtils';
+import { buildTimelineDayMap, getTrackingRange } from '../../utils/statsUtils';
 import momentHijri from 'moment-hijri';
 
 const moment = momentHijri;
@@ -17,43 +18,35 @@ interface YearlyHeatmapProps {
   onDayClick?: (date: string) => void;
 }
 
+type DayStatus = 'empty' | 'unrecorded' | 'missed' | 'partial' | 'good' | 'complete';
+
 // Month names
 const GREGORIAN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const HIJRI_MONTHS = ['Muḥ', 'Ṣaf', 'Rb1', 'Rb2', 'Jm1', 'Jm2', 'Raj', 'Sha', 'Ram', 'Shw', 'Qʿd', 'Ḥij'];
 
 export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDayClick }: YearlyHeatmapProps) {
+  const trackingRange = useMemo(() => getTrackingRange(records), [records]);
+
   // Group records by date with status calculation
   const dayStatusMap = useMemo(() => {
-    const dayMap = new Map<string, { prayed: number; jamah: number; missed: number; qada: number; total: number }>();
-    
-    records.forEach((record) => {
-      if (!dayMap.has(record.gregorian_date)) {
-        dayMap.set(record.gregorian_date, { prayed: 0, jamah: 0, missed: 0, qada: 0, total: 0 });
-      }
-      
-      const day = dayMap.get(record.gregorian_date)!;
-      if (record.status === 'Prayed') day.prayed++;
-      else if (record.status === 'Jamah') day.jamah++;
-      else if (record.status === 'Missed') day.missed++;
-      else if (record.status === 'Qada') day.qada++;
-      if (record.status !== 'Excused' && record.status !== null) day.total++;
-    });
-    
+    const dayMap = buildTimelineDayMap(records);
     // Convert to status levels
-    const statusMap = new Map<string, number>();
+    const statusMap = new Map<string, DayStatus>();
     dayMap.forEach((stats, date) => {
-      const prayedRatio = stats.total > 0 ? (stats.prayed + stats.jamah + stats.qada) / stats.total : 0;
-      const jamahRatio = stats.total > 0 ? stats.jamah / stats.total : 0;
+      const relevant = Math.max(PRAYER_NAMES.length - stats.excused, 0);
+      const prayedRatio = relevant > 0 ? stats.completed / relevant : 0;
       
-      let status = 0;
-      if (stats.missed > 0 && stats.missed === stats.total) {
-        status = 1; // All missed
+      let status: DayStatus = 'empty';
+      if (stats.missed > 0) {
+        status = 'missed';
+      } else if (stats.unrecorded > 0) {
+        status = 'unrecorded';
+      } else if (prayedRatio === 1) {
+        status = 'complete';
       } else if (prayedRatio >= 0.8) {
-        status = jamahRatio >= 0.5 ? 4 : 3; // Excellent
-      } else if (prayedRatio >= 0.5) {
-        status = 2; // Good
-      } else if (stats.total > 0) {
-        status = 1; // Poor
+        status = 'good';
+      } else if (prayedRatio > 0) {
+        status = 'partial';
       }
       statusMap.set(date, status);
     });
@@ -81,12 +74,13 @@ export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDay
   const monthNames = calendarMode === 'hijri' ? HIJRI_MONTHS : GREGORIAN_MONTHS;
 
   // Color classes for status levels
-  const getStatusColor = (status: number) => {
+  const getStatusColor = (status: DayStatus) => {
     switch (status) {
-      case 1: return 'bg-red-300 dark:bg-red-400';
-      case 2: return 'bg-green-200 dark:bg-green-300';
-      case 3: return 'bg-green-400 dark:bg-green-500';
-      case 4: return 'bg-green-600 dark:bg-green-700';
+      case 'missed': return 'bg-red-300 dark:bg-red-400';
+      case 'unrecorded': return 'bg-gray-300 dark:bg-gray-600';
+      case 'partial': return 'bg-yellow-300 dark:bg-yellow-400';
+      case 'good': return 'bg-green-300 dark:bg-green-400';
+      case 'complete': return 'bg-green-500 dark:bg-green-600';
       default: return 'bg-gray-200 dark:bg-gray-700';
     }
   };
@@ -115,7 +109,8 @@ export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDay
               
               {/* Day cells */}
               {dates.map((date) => {
-                const status = dayStatusMap.get(date) || 0;
+                const isTrackedDate = Boolean(trackingRange && date >= trackingRange.startDate && date <= trackingRange.endDate);
+                const status = dayStatusMap.get(date) ?? (isTrackedDate ? 'unrecorded' : 'empty');
                 const isToday = moment(date).isSame(moment(), 'day');
                 // Get the day number based on calendar mode
                 const dayNum = calendarMode === 'hijri' 
@@ -145,16 +140,23 @@ export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDay
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-600 dark:text-gray-400">
-        <span>Less</span>
-        <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-gray-700" />
-          <div className="w-3 h-3 rounded-sm bg-red-300" />
-          <div className="w-3 h-3 rounded-sm bg-green-200" />
-          <div className="w-3 h-3 rounded-sm bg-green-400" />
-          <div className="w-3 h-3 rounded-sm bg-green-600" />
+      <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-gray-600 dark:text-gray-400">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-gray-300 dark:bg-gray-600" />
+          <span>Unrecorded</span>
         </div>
-        <span>More</span>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-red-300" />
+          <span>Missed</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-yellow-300" />
+          <span>Partial</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-sm bg-green-500" />
+          <span>Complete</span>
+        </div>
       </div>
     </div>
   );

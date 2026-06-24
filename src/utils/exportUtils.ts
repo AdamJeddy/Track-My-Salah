@@ -1,6 +1,12 @@
 import { PrayerRecord, PrayerName, PrayerStatus, PRAYER_NAMES, PRAYER_STATUS_OPTIONS } from '../models/PrayerRecord';
 import { gregorianToHijri } from './dateUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { Capacitor } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+
+export type ExportCSVResult =
+  | { mode: 'downloaded' }
+  | { mode: 'saved'; path: string; uri: string };
 
 /**
  * Export prayer records to CSV format
@@ -54,6 +60,34 @@ export function downloadCSV(csvContent: string, filename: string = 'trackmysalah
   document.body.removeChild(link);
   
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Export CSV using the correct platform flow.
+ */
+export async function exportCSVFile(csvContent: string, filename: string = 'trackmysalah_export.csv'): Promise<ExportCSVResult> {
+  // On native (Capacitor), save directly to the Documents directory
+  if (Capacitor.isNativePlatform()) {
+    const documentsPath = `TrackMySalah/${filename}`;
+
+    try {
+      const result = await Filesystem.writeFile({
+        path: documentsPath,
+        data: csvContent,
+        directory: Directory.Documents,
+        encoding: Encoding.UTF8,
+        recursive: true,
+      });
+
+      return { mode: 'saved', path: documentsPath, uri: result.uri };
+    } catch (error) {
+      console.warn('Could not write export to Documents; falling back to browser download.', error);
+    }
+  }
+
+  // Fallback: trigger a browser download (works on web and as native fallback)
+  downloadCSV(csvContent, filename);
+  return { mode: 'downloaded' };
 }
 
 /**

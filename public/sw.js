@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trackmysalah-v10';
+const CACHE_NAME = 'trackmysalah-v12';
 const urlsToCache = [
   '/',
   '/index.html',

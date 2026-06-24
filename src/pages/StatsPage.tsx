@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PrayerRecord } from '../models/PrayerRecord';
-import { getAllRecords, getRecordsByDate } from '../services/localStorageService';
+import { getAllRecords, getRecordsByDate, getGenderPreference, saveRecord } from '../services/localStorageService';
 import { getCurrentGregorianYear, getCurrentHijriYear, getCurrentHijriMonth, getFormattedGregorianDate, getFormattedHijriDate } from '../utils/dateUtils';
+import { getTimelineDays, getMissingPrayerNames, getFirstRecordDate } from '../utils/statsUtils';
+import { getTodayGregorian } from '../utils/dateUtils';
 import {
   StatisticsCard,
   YearlyHeatmap,
@@ -19,6 +22,7 @@ type HijriMoment = ReturnType<typeof moment> & {
 };
 
 export function StatsPage() {
+  const navigate = useNavigate();
   const [records, setRecords] = useState<PrayerRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [calendarMode, setCalendarMode] = useState<'gregorian' | 'hijri'>('gregorian');
@@ -30,33 +34,43 @@ export function StatsPage() {
   ); // 1-12
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [dayRecords, setDayRecords] = useState<PrayerRecord[]>([]);
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
+  const timelineDays = useMemo(() => getTimelineDays(records), [records]);
 
   const missedGroups = useMemo(() => {
-    const map = new Map<string, { gregorian: string; hijri: string; missed: string[] }>();
+    const explicitMissedByDate = new Map<string, string[]>();
+    const today = getTodayGregorian();
+    const firstRecordDate = getFirstRecordDate(records);
 
     records.forEach((record) => {
       if (record.status === 'Missed') {
-        if (!map.has(record.gregorian_date)) {
-          map.set(record.gregorian_date, {
-            gregorian: record.gregorian_date,
-            hijri: record.hijri_date,
-            missed: [],
-          });
-        }
-        const entry = map.get(record.gregorian_date)!;
-        entry.missed.push(record.prayer_name);
+        const prayers = explicitMissedByDate.get(record.gregorian_date) ?? [];
+        prayers.push(record.prayer_name);
+        explicitMissedByDate.set(record.gregorian_date, prayers);
       }
     });
 
-    return Array.from(map.values()).sort((a, b) => b.gregorian.localeCompare(a.gregorian)).slice(0, 20);
-  }, [records]);
+    return timelineDays
+      .filter((day) => (day.missed > 0 || day.unrecorded > 0))
+      .filter((day) => day.date !== today) // Exclude today since the day hasn't finished
+      .filter((day) => day.date !== firstRecordDate) // Exclude first record (shown in stats card)
+      .map((day) => ({
+        gregorian: day.date,
+        hijri: day.hijriDate,
+        missed: explicitMissedByDate.get(day.date) ?? [],
+        unrecorded: day.unrecorded > 0 ? getMissingPrayerNames(day) : [],
+        isSkipped: day.isSkipped,
+      }))
+      .sort((a, b) => b.gregorian.localeCompare(a.gregorian));
+  }, [records, timelineDays]);
 
   // Load all records
   const loadRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const allRecords = await getAllRecords();
+      const [allRecords, savedGender] = await Promise.all([getAllRecords(), getGenderPreference()]);
       setRecords(allRecords);
+      setGender(savedGender);
     } catch (error) {
       console.error('Failed to load records:', error);
     } finally {
@@ -73,6 +87,25 @@ export function StatsPage() {
     setSelectedDay(date);
     const dayRecs = await getRecordsByDate(date);
     setDayRecords(dayRecs);
+  };
+
+  const handleDayStatusChange = async (
+    date: string,
+    prayerName: PrayerRecord['prayer_name'],
+    status: PrayerRecord['status']
+  ) => {
+    try {
+      await saveRecord(date, prayerName, status);
+      const [dayRecs, allRecords] = await Promise.all([getRecordsByDate(date), getAllRecords()]);
+      setDayRecords(dayRecs);
+      setRecords(allRecords);
+    } catch (error) {
+      console.error('Failed to update record from stats:', error);
+    }
+  };
+
+  const handleOpenDayInTracker = (date: string) => {
+    navigate('/tracker', { state: { selectedDate: date } });
   };
 
   // Filter records for selected year
@@ -112,6 +145,7 @@ export function StatsPage() {
       return false;
     }
   });
+  void yearRecords;
 
   if (loading) {
     return (
@@ -140,7 +174,7 @@ export function StatsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Missed Prayers</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Recent prayers that were missed</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Prayers that were missed or days left unrecorded since your first record</p>
             </div>
           </div>
 
@@ -148,27 +182,63 @@ export function StatsPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400">No missed prayers yet.</p>
           ) : (
             <div className="space-y-3">
-              {missedGroups.map((group) => (
-                <div key={group.gregorian} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{getFormattedGregorianDate(group.gregorian)}</p>
-                      <p className="text-xs text-primary-600 dark:text-primary-400">{getFormattedHijriDate(group.gregorian)}</p>
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {group.missed.length} {group.missed.length === 1 ? 'prayer' : 'prayers'}
-                    </div>
-                  </div>
+              {missedGroups.map((group) => {
+                const totalCount = group.missed.length + group.unrecorded.length;
+                const allMissed = group.missed.length === 5;
+                const allUnrecorded = group.unrecorded.length === 5;
+                const allCombined = totalCount === 5 && !allMissed && !allUnrecorded;
 
-                  <div className="flex flex-wrap gap-2">
-                    {group.missed.map((prayer) => (
-                      <span key={`${group.gregorian}-${prayer}-missed`} className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
-                        {prayer} — Missed
-                      </span>
-                    ))}
+                return (
+                  <div key={group.gregorian} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{getFormattedGregorianDate(group.gregorian)}</p>
+                        <p className="text-xs text-primary-600 dark:text-primary-400">{getFormattedHijriDate(group.gregorian)}</p>
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {totalCount} {totalCount === 1 ? 'prayer' : 'prayers'}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {/* Combined cascade: all 5 prayers missed/unrecorded */}
+                      {allCombined && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                          All 5 prayers missed / unrecorded
+                        </span>
+                      )}
+
+                      {/* All missed cascade */}
+                      {!allCombined && allMissed && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
+                          All 5 prayers missed
+                        </span>
+                      )}
+
+                      {/* Individual missed prayers */}
+                      {!allCombined && !allMissed && group.missed.map((prayer) => (
+                        <span key={`${group.gregorian}-${prayer}-missed`} className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
+                          {prayer} - Missed
+                        </span>
+                      ))}
+
+                      {/* All unrecorded cascade */}
+                      {!allCombined && allUnrecorded && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                          All 5 prayers unrecorded
+                        </span>
+                      )}
+
+                      {/* Individual unrecorded prayers */}
+                      {!allCombined && !allUnrecorded && group.unrecorded.map((prayer) => (
+                        <span key={`${group.gregorian}-${prayer}-unrecorded`} className="px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                          {prayer} - Unrecorded
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -216,7 +286,7 @@ export function StatsPage() {
 
         {/* Yearly Heatmap */}
         <YearlyHeatmap
-          records={yearRecords}
+          records={records}
           year={selectedYear}
           calendarMode={calendarMode}
           onDayClick={handleDayClick}
@@ -227,6 +297,9 @@ export function StatsPage() {
           <DayDetailModal
             date={selectedDay}
             records={dayRecords}
+            gender={gender}
+            onStatusChange={handleDayStatusChange}
+            onOpenInTracker={handleOpenDayInTracker}
             onClose={() => setSelectedDay(null)}
           />
         )}
