@@ -22,6 +22,7 @@ body {
 #root {
   min-height: 100vh;
   min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0);
 }
 
 /* Safe area insets for iOS */

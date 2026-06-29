@@ -52,13 +52,13 @@ export function StatsPage() {
 
     return timelineDays
       .filter((day) => (day.missed > 0 || day.unrecorded > 0))
-      .filter((day) => day.date !== today) // Exclude today since the day hasn't finished
+      .filter((day) => day.date !== today || day.missed > 0) // Show today only if it has explicit missed prayers (not just unrecorded)
       .filter((day) => day.date !== firstRecordDate) // Exclude first record (shown in stats card)
       .map((day) => ({
         gregorian: day.date,
         hijri: day.hijriDate,
         missed: explicitMissedByDate.get(day.date) ?? [],
-        unrecorded: day.unrecorded > 0 ? getMissingPrayerNames(day) : [],
+        unrecorded: day.unrecorded > 0 && day.date !== today ? getMissingPrayerNames(day) : [],
         isSkipped: day.isSkipped,
       }))
       .sort((a, b) => b.gregorian.localeCompare(a.gregorian));
