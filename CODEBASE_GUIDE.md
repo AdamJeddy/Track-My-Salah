@@ -107,6 +107,8 @@ Key characteristics:
 - `src/context/ThemeContext.tsx`
   - Light/dark theme state.
   - Uses browser `localStorage`, not `localforage`.
+  - Also manages the native status bar appearance via `@capacitor/status-bar`
+    (green background with white icons in light mode, dark in dark mode).
 
 - `src/services/localStorageService.ts`
   - Main persistence layer using `localforage`.
@@ -212,7 +214,7 @@ Important implications:
 
 - Stats are computed fully client-side.
 - Gregorian and Hijri views are both based on the same stored Gregorian records.
-- Missed-prayer history is grouped by Gregorian date.
+- Missed-prayer history is displayed as per-date cards with color-coded prayer badges.
 - Day-detail modal re-reads records for the clicked day.
 
 The page currently treats `Prayed`, `Jamah`, and `Qada` as completed prayers in most aggregate views.
@@ -286,6 +288,11 @@ The design is mobile-first:
 - Bottom navigation is fixed.
 - Tracker has a distinct mobile button grid and desktop row layout.
 - Safe-area helpers are defined in `src/index.css`.
+- The native status bar is styled via `@capacitor/status-bar` (green `#16a34a` in light mode,
+  dark gray `#111827` in dark mode), with `html`/`body` background CSS to show the correct
+  color behind the transparent overlay.
+- Samsung One UI devices require the native workaround in `MainActivity.java` to force
+  white status bar icons via `WindowInsetsController`.
 
 ## Change Guide
 
