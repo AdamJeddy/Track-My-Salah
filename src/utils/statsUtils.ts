@@ -128,3 +128,41 @@ export function getTimelineDays(records: PrayerRecord[]): TimelineDayStats[] {
 export function getMissingPrayerNames(day: TimelineDayStats): PrayerName[] {
   return PRAYER_NAMES.filter((prayer) => !day.prayersLogged.has(prayer));
 }
+
+export interface PeriodSummary {
+  totalPossible: number;
+  jamah: number;
+  onTime: number;
+}
+
+/**
+ * Compute prayer summary for a date range (inclusive).
+ * totalPossible = 5 prayers × number of days in range.
+ * jamah = prayers marked Jamah.
+ * onTime = Jamah + Prayed (prayers done on time, excluding Qada).
+ */
+export function getPeriodSummary(records: PrayerRecord[], startDate: string, endDate: string): PeriodSummary {
+  const rangeRecords = records.filter(
+    (r) => r.gregorian_date >= startDate && r.gregorian_date <= endDate,
+  );
+
+  let jamah = 0;
+  let onTime = 0;
+
+  for (const record of rangeRecords) {
+    if (record.status === 'Jamah') {
+      jamah++;
+      onTime++;
+    } else if (record.status === 'Prayed') {
+      onTime++;
+    }
+  }
+
+  // Count days in range
+  const start = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  const daysDiff = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const totalPossible = Math.max(daysDiff, 1) * PRAYER_NAMES.length;
+
+  return { totalPossible, jamah, onTime };
+}

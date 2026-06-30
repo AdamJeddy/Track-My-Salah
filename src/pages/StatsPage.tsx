@@ -37,12 +37,7 @@ export function StatsPage() {
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const timelineDays = useMemo(() => getTimelineDays(records), [records]);
 
-  interface PrayerEntry {
-    name: string;
-    type: 'Missed' | 'Unrecorded';
-  }
-
-  const missedDays = useMemo(() => {
+  const missedGroups = useMemo(() => {
     const explicitMissedByDate = new Map<string, string[]>();
     const today = getTodayGregorian();
     const firstRecordDate = getFirstRecordDate(records);
@@ -57,27 +52,15 @@ export function StatsPage() {
 
     return timelineDays
       .filter((day) => (day.missed > 0 || day.unrecorded > 0))
-      .filter((day) => day.date !== today || day.missed > 0)
-      .filter((day) => day.date !== firstRecordDate)
-      .map((day) => {
-        const prayers: PrayerEntry[] = [];
-
-        (explicitMissedByDate.get(day.date) ?? []).forEach((name) => {
-          prayers.push({ name, type: 'Missed' });
-        });
-
-        if (day.unrecorded > 0 && day.date !== today) {
-          getMissingPrayerNames(day).forEach((name) => {
-            prayers.push({ name, type: 'Unrecorded' });
-          });
-        }
-
-        return {
-          gregorian: day.date,
-          hijri: day.hijriDate,
-          prayers,
-        };
-      })
+      .filter((day) => day.date !== today || day.missed > 0) // Show today only if it has explicit missed prayers (not just unrecorded)
+      .filter((day) => day.date !== firstRecordDate) // Exclude first record (shown in stats card)
+      .map((day) => ({
+        gregorian: day.date,
+        hijri: day.hijriDate,
+        missed: explicitMissedByDate.get(day.date) ?? [],
+        unrecorded: day.unrecorded > 0 && day.date !== today ? getMissingPrayerNames(day) : [],
+        isSkipped: day.isSkipped,
+      }))
       .sort((a, b) => b.gregorian.localeCompare(a.gregorian));
   }, [records, timelineDays]);
 
@@ -188,44 +171,74 @@ export function StatsPage() {
 
         {/* Missed Log */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm space-y-3">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Missed Prayers</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Prayers that were missed or left unrecorded since your first record</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Missed Prayers</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Prayers that were missed or days left unrecorded since your first record</p>
+            </div>
           </div>
 
-          {missedDays.length === 0 ? (
+          {missedGroups.length === 0 ? (
             <p className="text-sm text-gray-600 dark:text-gray-400">No missed prayers yet.</p>
           ) : (
-            <div className="space-y-2">
-              {missedDays.map((day) => (
-                <div key={day.gregorian} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <p className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {getFormattedGregorianDate(day.gregorian)}
-                    </p>
-                    <p className="text-xs text-primary-600 dark:text-primary-400">
-                      {getFormattedHijriDate(day.gregorian)}
-                    </p>
-                    <span className="text-xs text-gray-400 ml-auto">
-                      {day.prayers.length}
-                    </span>
+            <div className="space-y-3">
+              {missedGroups.map((group) => {
+                const totalCount = group.missed.length + group.unrecorded.length;
+                const allMissed = group.missed.length === 5;
+                const allUnrecorded = group.unrecorded.length === 5;
+                const allCombined = totalCount === 5 && !allMissed && !allUnrecorded;
+
+                return (
+                  <div key={group.gregorian} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{getFormattedGregorianDate(group.gregorian)}</p>
+                        <p className="text-xs text-primary-600 dark:text-primary-400">{getFormattedHijriDate(group.gregorian)}</p>
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {totalCount} {totalCount === 1 ? 'prayer' : 'prayers'}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {/* Combined cascade: all 5 prayers missed/unrecorded */}
+                      {allCombined && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                          All 5 prayers missed / unrecorded
+                        </span>
+                      )}
+
+                      {/* All missed cascade */}
+                      {!allCombined && allMissed && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
+                          All 5 prayers missed
+                        </span>
+                      )}
+
+                      {/* Individual missed prayers */}
+                      {!allCombined && !allMissed && group.missed.map((prayer) => (
+                        <span key={`${group.gregorian}-${prayer}-missed`} className="px-2 py-1 rounded-full text-xs font-medium bg-missed/10 text-missed">
+                          {prayer} - Missed
+                        </span>
+                      ))}
+
+                      {/* All unrecorded cascade */}
+                      {!allCombined && allUnrecorded && (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                          All 5 prayers unrecorded
+                        </span>
+                      )}
+
+                      {/* Individual unrecorded prayers */}
+                      {!allCombined && !allUnrecorded && group.unrecorded.map((prayer) => (
+                        <span key={`${group.gregorian}-${prayer}-unrecorded`} className="px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                          {prayer} - Unrecorded
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {day.prayers.map((p) => (
-                      <span
-                        key={`${day.gregorian}-${p.name}-${p.type}`}
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          p.type === 'Missed'
-                            ? 'bg-missed/10 text-missed'
-                            : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'
-                        }`}
-                      >
-                        {p.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -31,7 +31,7 @@ export function SettingsPage() {
   const [importing, setImporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ enabled: false, time: '21:00' });
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ enabled: false, time: '21:00', weeklySummaryEnabled: true, monthlySummaryEnabled: true });
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notificationsSupported, setNotificationsSupported] = useState<boolean>(true);
@@ -118,6 +118,38 @@ export function SettingsPage() {
     } catch (error) {
       console.error('Failed to update reminder time:', error);
       setMessage({ type: 'error', text: 'Could not update reminder time.' });
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const handleWeeklySummaryToggle = async (enabled: boolean) => {
+    setNotificationLoading(true);
+    setMessage(null);
+    try {
+      const nextSettings: NotificationSettings = { ...notificationSettings, weeklySummaryEnabled: enabled };
+      await updateNotificationSettings(nextSettings);
+      setNotificationSettings(nextSettings);
+      setMessage({ type: 'success', text: enabled ? 'Weekly summary enabled.' : 'Weekly summary disabled.' });
+    } catch (error) {
+      console.error('Failed to update weekly summary:', error);
+      setMessage({ type: 'error', text: 'Could not update weekly summary.' });
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  const handleMonthlySummaryToggle = async (enabled: boolean) => {
+    setNotificationLoading(true);
+    setMessage(null);
+    try {
+      const nextSettings: NotificationSettings = { ...notificationSettings, monthlySummaryEnabled: enabled };
+      await updateNotificationSettings(nextSettings);
+      setNotificationSettings(nextSettings);
+      setMessage({ type: 'success', text: enabled ? 'Monthly summary enabled.' : 'Monthly summary disabled.' });
+    } catch (error) {
+      console.error('Failed to update monthly summary:', error);
+      setMessage({ type: 'error', text: 'Could not update monthly summary.' });
     } finally {
       setNotificationLoading(false);
     }
@@ -347,7 +379,49 @@ export function SettingsPage() {
                 />
               </div>
             </div>
-          
+
+            {/* Weekly summary toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Weekly summary</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Every Friday, a recap of the past 7 days</p>
+              </div>
+              <button
+                onClick={() => handleWeeklySummaryToggle(!notificationSettings.weeklySummaryEnabled)}
+                disabled={!notificationsSupported || notificationLoading}
+                className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                  notificationSettings.weeklySummaryEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'
+                } disabled:opacity-50`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                    notificationSettings.weeklySummaryEnabled ? 'translate-x-6' : ''
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Monthly summary toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Monthly summary</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">On the 1st, a recap of the previous month</p>
+              </div>
+              <button
+                onClick={() => handleMonthlySummaryToggle(!notificationSettings.monthlySummaryEnabled)}
+                disabled={!notificationsSupported || notificationLoading}
+                className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                  notificationSettings.monthlySummaryEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'
+                } disabled:opacity-50`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                    notificationSettings.monthlySummaryEnabled ? 'translate-x-6' : ''
+                  }`}
+                />
+              </button>
+            </div>
+
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {notificationsPlatform === 'native'
                 ? 'On Android, reminders use the native local notification system.'
@@ -433,7 +507,7 @@ export function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">TrackMySalah</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Version 1.0.0</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Version 0.2.0 Beta</p>
               </div>
             </div>
             
