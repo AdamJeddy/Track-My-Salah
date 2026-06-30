@@ -14,11 +14,6 @@
   box-sizing: border-box;
 }
 
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-
 #root {
   min-height: 100vh;
   min-height: 100dvh;
@@ -34,9 +29,23 @@ body {
   padding-top: env(safe-area-inset-top, 0);
 }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  background-color: #16a34a;
+}
+
+html.dark {
+  background-color: #111827;
+}
+
+body {
+  background-color: #f9fafb;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html.dark body {
+  background-color: #111827;
 }
 
 /* Remove tap highlight on mobile */
