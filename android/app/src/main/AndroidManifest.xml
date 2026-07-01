@@ -45,16 +45,6 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/prayer_widget_info" />
         </receiver>
-
-        <receiver
-            android:name=".PrayerWidgetReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="app.trackmysalah.ACTION_LOG_PRAYER" />
-                <action android:name="app.trackmysalah.ACTION_RESET_DAY" />
-                <action android:name="android.intent.action.DATE_CHANGED" />
-            </intent-filter>
-        </receiver>
     </application>
 
     <!-- Permissions -->

@@ -27,9 +27,9 @@ function AppShell() {
         .then((settings) => applyNotificationScheduler(settings))
         .catch((error) => console.error('Notification scheduler init failed:', error));
 
-      // Sync widget data (import prayers logged from widget while app was closed)
-      import('./services/widgetService').then(({ syncWidgetData }) => {
-        syncWidgetData().catch(() => {});
+      // Push month data to widget
+      import('./services/widgetService').then(({ pushMonthToWidget }) => {
+        pushMonthToWidget().catch(() => {});
       });
 
       if (!active) return;

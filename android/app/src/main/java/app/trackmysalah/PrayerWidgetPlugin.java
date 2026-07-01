@@ -16,70 +16,32 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "PrayerWidget")
 public class PrayerWidgetPlugin extends Plugin {
 
-    private static final String PREFS_NAME = "prayer_widget_prefs";
-    private static final String KEY_DATA = "widget_today";
-
-    private SharedPreferences getPrefs() {
-        return getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-    }
+    private static final String PREFS = "prayer_widget_prefs";
+    private static final String KEY = "widget_month";
 
     @PluginMethod
     public void updateWidgetData(PluginCall call) {
-        String date = call.getString("date", "");
-        JSObject prayers = call.getObject("prayers", new JSObject());
-        long lastModified = System.currentTimeMillis();
-
-        JSONObject data = new JSONObject();
+        JSObject data = call.getObject("data", new JSObject());
+        JSONObject json = new JSONObject();
         try {
-            data.put("date", date);
-            data.put("prayers", prayers);
-            data.put("lastModified", lastModified);
-        } catch (JSONException e) {
-            call.reject("Failed to build widget data: " + e.getMessage());
-            return;
-        }
-
-        getPrefs().edit().putString(KEY_DATA, data.toString()).apply();
+            json.put("monthLabel", data.getString("monthLabel", ""));
+            json.put("firstDayOfWeek", data.getInteger("firstDayOfWeek", 0));
+            json.put("numDays", data.getInteger("numDays", 0));
+            json.put("trackedDays", data.getInteger("trackedDays", 0));
+            json.put("days", data.getJSONArray("days"));
+            json.put("lastModified", System.currentTimeMillis());
+        } catch (JSONException e) { call.reject("Failed: " + e.getMessage()); return; }
+        getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, json.toString()).apply();
         refreshWidget();
         call.resolve();
     }
 
-    @PluginMethod
-    public void getWidgetData(PluginCall call) {
-        String json = getPrefs().getString(KEY_DATA, null);
-        JSObject result = new JSObject();
-        result.put("hasData", json != null);
-        if (json != null) {
-            try {
-                JSONObject data = new JSONObject(json);
-                result.put("date", data.optString("date", ""));
-                result.put("prayers", data.optJSONObject("prayers") != null
-                    ? data.optJSONObject("prayers")
-                    : new JSONObject());
-                result.put("lastModified", data.optLong("lastModified", 0));
-            } catch (JSONException e) {
-                result.put("hasData", false);
-            }
-        }
-        call.resolve(result);
-    }
-
-    @PluginMethod
-    public void openWidgetPicker(PluginCall call) {
-        Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_PICK);
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-        getActivity().startActivity(intent);
-        call.resolve();
-    }
-
     private void refreshWidget() {
-        Context context = getContext();
-        AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        ComponentName provider = new ComponentName(context, PrayerWidgetProvider.class);
-        int[] ids = manager.getAppWidgetIds(provider);
-        Intent updateIntent = new Intent(context, PrayerWidgetProvider.class);
-        updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-        context.sendBroadcast(updateIntent);
+        Context ctx = getContext();
+        ComponentName cn = new ComponentName(ctx, PrayerWidgetProvider.class);
+        Intent in = new Intent(ctx, PrayerWidgetProvider.class);
+        in.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        in.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, AppWidgetManager.getInstance(ctx).getAppWidgetIds(cn));
+        ctx.sendBroadcast(in);
     }
 }

@@ -61,8 +61,8 @@ export function TrackerPage() {
     try {
       await saveRecord(selectedDate, prayer, status);
       // Push to widget if on native
-      import('../services/widgetService').then(({ pushTodayToWidget }) => {
-        pushTodayToWidget().catch(() => {});
+      import('../services/widgetService').then(({ pushMonthToWidget }) => {
+        pushMonthToWidget().catch(() => {});
       });
     } catch (error) {
       console.error('Failed to save record:', error);

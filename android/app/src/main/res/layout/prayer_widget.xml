@@ -2,101 +2,49 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="10dp"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
     android:background="@drawable/widget_background">
 
-    <LinearLayout
-        android:id="@+id/widget_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingBottom="6dp">
-
-        <ImageView
-            android:id="@+id/header_icon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@mipmap/ic_launcher"
-            android:contentDescription="@string/app_name" />
-
-        <TextView
-            android:id="@+id/header_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="6dp"
-            android:text="Today"
-            android:textColor="#111827"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+    <LinearLayout android:id="@+id/widget_header" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingBottom="4dp">
+        <ImageView android:id="@+id/header_icon" android:layout_width="20dp" android:layout_height="20dp" android:src="@mipmap/ic_launcher" android:contentDescription="@string/app_name" />
+        <TextView android:id="@+id/month_label" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="6dp" android:text="Month" android:textColor="#111827" android:textSize="15sp" android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Fajr -->
-    <LinearLayout android:id="@+id/row_fajr" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="2dp">
-        <TextView android:id="@+id/name_fajr" android:layout_width="55dp" android:layout_height="wrap_content" android:text="Fajr" android:textColor="#374151" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_fajr_jamah" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:layout_marginEnd="3dp" android:text="Jamah" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_jamah" />
-        <TextView android:id="@+id/btn_fajr_prayed" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:text="Prayed" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_prayed" />
-        <TextView android:id="@+id/badge_fajr" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="2" android:gravity="center" android:textSize="11sp" android:textStyle="bold" android:visibility="gone" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingBottom="2dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Su" android:textColor="#9ca3af" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Mo" android:textColor="#9ca3af" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Tu" android:textColor="#9ca3af" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="We" android:textColor="#9ca3af" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Th" android:textColor="#9ca3af" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Fr" android:textColor="#9ca3af" android:textSize="11sp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Sa" android:textColor="#9ca3af" android:textSize="11sp" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="2dp">
+        <TextView android:id="@+id/cell_0" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_1" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_2" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_3" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_4" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_5" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_6" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="2dp">
+        <TextView android:id="@+id/cell_7" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_8" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_9" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_10" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_11" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_12" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_13" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="2dp">
+        <TextView android:id="@+id/cell_14" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_15" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_16" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_17" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_18" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_19" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_20" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="2dp">
+        <TextView android:id="@+id/cell_21" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_22" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_23" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_24" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_25" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_26" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_27" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="2dp">
+        <TextView android:id="@+id/cell_28" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_29" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_30" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_31" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_32" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_33" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" /><TextView android:id="@+id/cell_34" android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_margin="1.5dp" android:background="@drawable/cell_none" android:visibility="invisible" />
     </LinearLayout>
 
-    <!-- Dhuhr -->
-    <LinearLayout android:id="@+id/row_dhuhr" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="2dp">
-        <TextView android:id="@+id/name_dhuhr" android:layout_width="55dp" android:layout_height="wrap_content" android:text="Dhuhr" android:textColor="#374151" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_dhuhr_jamah" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:layout_marginEnd="3dp" android:text="Jamah" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_jamah" />
-        <TextView android:id="@+id/btn_dhuhr_prayed" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:text="Prayed" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_prayed" />
-        <TextView android:id="@+id/badge_dhuhr" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="2" android:gravity="center" android:textSize="11sp" android:textStyle="bold" android:visibility="gone" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="4dp">
+        <TextView android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/cell_complete" android:layout_marginEnd="2dp" />
+        <TextView android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/cell_partial" android:layout_marginEnd="2dp" />
+        <TextView android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/cell_missed" android:layout_marginEnd="2dp" />
+        <TextView android:layout_width="10dp" android:layout_height="10dp" android:background="@drawable/cell_none" android:layout_marginEnd="6dp" />
+        <TextView android:id="@+id/summary_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="0/0 days" android:textColor="#6b7280" android:textSize="11sp" />
     </LinearLayout>
-
-    <!-- Asr -->
-    <LinearLayout android:id="@+id/row_asr" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="2dp">
-        <TextView android:id="@+id/name_asr" android:layout_width="55dp" android:layout_height="wrap_content" android:text="Asr" android:textColor="#374151" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_asr_jamah" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:layout_marginEnd="3dp" android:text="Jamah" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_jamah" />
-        <TextView android:id="@+id/btn_asr_prayed" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:text="Prayed" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_prayed" />
-        <TextView android:id="@+id/badge_asr" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="2" android:gravity="center" android:textSize="11sp" android:textStyle="bold" android:visibility="gone" />
-    </LinearLayout>
-
-    <!-- Maghrib -->
-    <LinearLayout android:id="@+id/row_maghrib" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="2dp">
-        <TextView android:id="@+id/name_maghrib" android:layout_width="55dp" android:layout_height="wrap_content" android:text="Maghrib" android:textColor="#374151" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_maghrib_jamah" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:layout_marginEnd="3dp" android:text="Jamah" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_jamah" />
-        <TextView android:id="@+id/btn_maghrib_prayed" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:text="Prayed" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_prayed" />
-        <TextView android:id="@+id/badge_maghrib" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="2" android:gravity="center" android:textSize="11sp" android:textStyle="bold" android:visibility="gone" />
-    </LinearLayout>
-
-    <!-- Isha -->
-    <LinearLayout android:id="@+id/row_isha" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingVertical="2dp">
-        <TextView android:id="@+id/name_isha" android:layout_width="55dp" android:layout_height="wrap_content" android:text="Isha" android:textColor="#374151" android:textSize="13sp" />
-        <TextView android:id="@+id/btn_isha_jamah" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:layout_marginEnd="3dp" android:text="Jamah" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_jamah" />
-        <TextView android:id="@+id/btn_isha_prayed" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="1" android:text="Prayed" android:textSize="10sp" android:textColor="@android:color/white" android:gravity="center" android:background="@drawable/btn_prayed" />
-        <TextView android:id="@+id/badge_isha" android:layout_width="0dp" android:layout_height="24dp" android:layout_weight="2" android:gravity="center" android:textSize="11sp" android:textStyle="bold" android:visibility="gone" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingTop="4dp">
-
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="4dp"
-            android:layout_weight="1"
-            android:max="5" />
-
-        <TextView
-            android:id="@+id/progress_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="0/5"
-            android:textColor="#6b7280"
-            android:textSize="10sp" />
-    </LinearLayout>
-
 </LinearLayout>
