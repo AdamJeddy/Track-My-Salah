@@ -27,6 +27,11 @@ function AppShell() {
         .then((settings) => applyNotificationScheduler(settings))
         .catch((error) => console.error('Notification scheduler init failed:', error));
 
+      // Sync widget data (import prayers logged from widget while app was closed)
+      import('./services/widgetService').then(({ syncWidgetData }) => {
+        syncWidgetData().catch(() => {});
+      });
+
       if (!active) return;
 
       const isOnboarded = completedFlag || Boolean(gender);

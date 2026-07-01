@@ -14,6 +14,7 @@ import {
   Users,
   BellRing,
   Clock,
+  LayoutGrid,
 } from 'lucide-react';
 import {
   getNotificationSettings,
@@ -152,6 +153,16 @@ export function SettingsPage() {
       setMessage({ type: 'error', text: 'Could not update monthly summary.' });
     } finally {
       setNotificationLoading(false);
+    }
+  };
+
+  const handleAddWidget = async () => {
+    try {
+      const { openWidgetPicker } = await import('../services/widgetService');
+      await openWidgetPicker();
+    } catch (error) {
+      console.error('Failed to open widget picker:', error);
+      setMessage({ type: 'error', text: 'Could not open widget picker.' });
     }
   };
 
@@ -427,6 +438,25 @@ export function SettingsPage() {
                 ? 'On Android, reminders use the native local notification system.'
                 : 'On web, reminders can only fire while the app is open due to platform limits. Keep the tab or PWA open to receive the daily notification.'}
             </p>
+
+            <div className="h-px bg-gray-200 dark:bg-gray-700" />
+
+            {/* Add Widget */}
+            <div className="flex items-center gap-3">
+              <LayoutGrid className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div className="flex-1">
+                <p className="font-medium text-gray-900 dark:text-white">Home screen widget</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Add a widget for quick prayer logging
+                </p>
+              </div>
+              <button
+                onClick={handleAddWidget}
+                className="py-2 px-4 rounded-lg font-medium text-sm bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+              >
+                Add Widget
+              </button>
+            </div>
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">

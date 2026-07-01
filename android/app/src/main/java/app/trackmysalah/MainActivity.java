@@ -7,6 +7,12 @@ import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        registerPlugin(PrayerWidgetPlugin.class);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         // Force light/white status bar icons on Samsung One UI devices
