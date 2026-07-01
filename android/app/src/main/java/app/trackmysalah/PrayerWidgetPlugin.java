@@ -77,9 +77,6 @@ public class PrayerWidgetPlugin extends Plugin {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         ComponentName provider = new ComponentName(context, PrayerWidgetProvider.class);
         int[] ids = manager.getAppWidgetIds(provider);
-        if (ids.length > 0) {
-            manager.notifyAppWidgetViewDataChanged(ids, android.R.id.list);
-        }
         Intent updateIntent = new Intent(context, PrayerWidgetProvider.class);
         updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
         updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);

@@ -3,7 +3,6 @@ package app.trackmysalah;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,13 +17,6 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
 
     private static final String[] PRAYER_NAMES = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"};
 
-    // Layout IDs for each prayer row
-    private static final int[] ROW_IDS = {
-        R.id.row_fajr, R.id.row_dhuhr, R.id.row_asr, R.id.row_maghrib, R.id.row_isha
-    };
-    private static final int[] NAME_IDS = {
-        R.id.name_fajr, R.id.name_dhuhr, R.id.name_asr, R.id.name_maghrib, R.id.name_isha
-    };
     private static final int[] JAMAH_IDS = {
         R.id.btn_fajr_jamah, R.id.btn_dhuhr_jamah, R.id.btn_asr_jamah, R.id.btn_maghrib_jamah, R.id.btn_isha_jamah
     };
@@ -34,6 +26,8 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
     private static final int[] BADGE_IDS = {
         R.id.badge_fajr, R.id.badge_dhuhr, R.id.badge_asr, R.id.badge_maghrib, R.id.badge_isha
     };
+
+    private static final int REQUEST_HEADER = 1000;
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -57,7 +51,7 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
             // Header: open app on tap
             Intent openApp = new Intent(context, MainActivity.class);
             PendingIntent pendingOpen = PendingIntent.getActivity(
-                context, 0, openApp, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                context, REQUEST_HEADER, openApp, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             views.setOnClickPendingIntent(R.id.widget_header, pendingOpen);
 
             // Prayer rows
@@ -66,21 +60,42 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
                 boolean hasStatus = prayers.has(prayer) && !prayers.isNull(prayer) && prayers.optString(prayer).length() > 0;
 
                 if (hasStatus) {
-                    // Show badge, hide buttons
                     views.setViewVisibility(JAMAH_IDS[i], android.view.View.GONE);
                     views.setViewVisibility(PRAYED_IDS[i], android.view.View.GONE);
                     views.setViewVisibility(BADGE_IDS[i], android.view.View.VISIBLE);
 
-                    String displayStatus = prayers.optString(prayer);
-                    views.setTextViewText(BADGE_IDS[i], displayStatus);
+                    String status = prayers.optString(prayer);
+                    views.setTextViewText(BADGE_IDS[i], status);
+
+                    // Color badge by status
+                    int badgeColor;
+                    switch (status) {
+                        case "Jamah":
+                            badgeColor = 0xFF16a34a; // green
+                            break;
+                        case "Prayed":
+                            badgeColor = 0xFF2563eb; // blue
+                            break;
+                        case "Qada":
+                            badgeColor = 0xFFd97706; // amber
+                            break;
+                        case "Missed":
+                            badgeColor = 0xFFdc2626; // red
+                            break;
+                        case "Excused":
+                            badgeColor = 0xFF6b7280; // gray
+                            break;
+                        default:
+                            badgeColor = 0xFF374151;
+                    }
+                    views.setTextColor(BADGE_IDS[i], badgeColor);
 
                     // Tap badge to open app
                     Intent badgeIntent = new Intent(context, MainActivity.class);
                     PendingIntent pendingBadge = PendingIntent.getActivity(
-                        context, i + 100, badgeIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        context, REQUEST_HEADER + 1 + i, badgeIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                     views.setOnClickPendingIntent(BADGE_IDS[i], pendingBadge);
                 } else {
-                    // Show buttons, hide badge
                     views.setViewVisibility(JAMAH_IDS[i], android.view.View.VISIBLE);
                     views.setViewVisibility(PRAYED_IDS[i], android.view.View.VISIBLE);
                     views.setViewVisibility(BADGE_IDS[i], android.view.View.GONE);
@@ -91,7 +106,7 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
                     jamahIntent.putExtra("prayer_name", prayer);
                     jamahIntent.putExtra("status", "Jamah");
                     PendingIntent pendingJamah = PendingIntent.getBroadcast(
-                        context, i * 2, jamahIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        context, i, jamahIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                     views.setOnClickPendingIntent(JAMAH_IDS[i], pendingJamah);
 
                     // Prayed button
@@ -100,7 +115,7 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
                     prayedIntent.putExtra("prayer_name", prayer);
                     prayedIntent.putExtra("status", "Prayed");
                     PendingIntent pendingPrayed = PendingIntent.getBroadcast(
-                        context, i * 2 + 1, prayedIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                        context, i + 10, prayedIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                     views.setOnClickPendingIntent(PRAYED_IDS[i], pendingPrayed);
                 }
             }
@@ -126,16 +141,5 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         PrayerWidgetReceiver.scheduleMidnightReset(context);
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        super.onReceive(context, intent);
-        if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(intent.getAction())) {
-            AppWidgetManager manager = AppWidgetManager.getInstance(context);
-            ComponentName provider = new ComponentName(context, PrayerWidgetProvider.class);
-            int[] ids = manager.getAppWidgetIds(provider);
-            onUpdate(context, manager, ids);
-        }
     }
 }
