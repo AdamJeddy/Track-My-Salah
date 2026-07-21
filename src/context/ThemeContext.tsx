@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 type Theme = 'light' | 'dark';
 
@@ -36,6 +37,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
     // Persist preference
     localStorage.setItem(THEME_STORAGE_KEY, theme);
+
+    // Sync native status bar — transparent overlay, CSS handles the color
+    StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+    StatusBar.setStyle({ style: theme === 'dark' ? Style.Light : Style.Dark }).catch(() => {});
   }, [theme]);
 
   const toggleTheme = () => {

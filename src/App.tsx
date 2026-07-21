@@ -27,6 +27,11 @@ function AppShell() {
         .then((settings) => applyNotificationScheduler(settings))
         .catch((error) => console.error('Notification scheduler init failed:', error));
 
+      // Push month data to widget
+      import('./services/widgetService').then(({ pushMonthToWidget }) => {
+        pushMonthToWidget().catch(() => {});
+      });
+
       if (!active) return;
 
       const isOnboarded = completedFlag || Boolean(gender);

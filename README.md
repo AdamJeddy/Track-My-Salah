@@ -23,7 +23,7 @@ The project is shipped as:
 - Vite
 - Tailwind CSS
 - localforage (IndexedDB)
-- Capacitor 6 + Local Notifications
+- Capacitor 6 + Local Notifications + Status Bar
 
 ## Local Development
 
@@ -79,6 +79,7 @@ Privacy policy page is available at public/privacy.html.
 
 ## Related Docs
 
+- AGENTS.md
 - CODEBASE_GUIDE.md
 - CAPACITOR_GUIDE.md
 - PLAY_STORE_GUIDE.md
