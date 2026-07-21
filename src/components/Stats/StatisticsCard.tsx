@@ -13,30 +13,30 @@ function calculateStats(records: PrayerRecord[]) {
   const missedOrUnrecordedPrayers = sortedDays.reduce((sum, day) => sum + day.missed + day.unrecorded, 0);
   
   // Calculate streaks (days where all non-excused prayers were prayed)
+  const isGoodDay = (day: typeof sortedDays[number]) => {
+    const totalRelevant = Math.max(PRAYER_NAMES.length - day.excused, 0);
+    return totalRelevant > 0 && day.completed === totalRelevant && day.missed === 0 && day.unrecorded === 0;
+  };
+
   let currentStreak = 0;
+  for (let i = sortedDays.length - 1; i >= 0 && isGoodDay(sortedDays[i]); i--) {
+    currentStreak++;
+  }
+
   let bestStreak = 0;
   let tempStreak = 0;
   
   // A "good day" is when all logged prayers (excluding excused) are Prayed or Jamah
   for (let i = sortedDays.length - 1; i >= 0; i--) {
-    const day = sortedDays[i];
-    const totalRelevant = Math.max(PRAYER_NAMES.length - day.excused, 0);
-    
-    const isGoodDay = totalRelevant > 0 && day.completed === totalRelevant && day.missed === 0 && day.unrecorded === 0;
-    
-    if (isGoodDay) {
-      if (i === sortedDays.length - 1 || tempStreak > 0) {
-        tempStreak++;
-      }
+    if (isGoodDay(sortedDays[i])) {
+      tempStreak++;
     } else {
-      if (currentStreak === 0) currentStreak = tempStreak;
       bestStreak = Math.max(bestStreak, tempStreak);
       tempStreak = 0;
     }
   }
   
-  // Final streak calculation
-  if (currentStreak === 0) currentStreak = tempStreak;
+  // Include a streak that reaches the earliest tracked day.
   bestStreak = Math.max(bestStreak, tempStreak);
   
   // Calculate overall consistency
