@@ -246,13 +246,19 @@ export function SettingsPage() {
         {/* Message */}
         {message && (
           <div
-            className={`p-4 rounded-xl ${
+            role={message.type === 'error' ? 'alert' : 'status'}
+            className={`fixed bottom-24 left-4 right-4 z-50 mx-auto max-w-lg p-4 rounded-xl shadow-lg border ${
               message.type === 'success'
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400'
+                : 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
             }`}
           >
-            {message.text}
+            <div className="flex items-start justify-between gap-3">
+              <span>{message.text}</span>
+              <button type="button" onClick={() => setMessage(null)} aria-label="Dismiss message" className="shrink-0 underline">
+                Dismiss
+              </button>
+            </div>
           </div>
         )}
 
