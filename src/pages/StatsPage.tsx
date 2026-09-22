@@ -80,6 +80,23 @@ export function StatsPage() {
 
   useEffect(() => {
     loadRecords();
+    let lastDate = getTodayGregorian();
+    const refreshOnNewDay = () => {
+      const today = getTodayGregorian();
+      if (today !== lastDate) {
+        lastDate = today;
+        void loadRecords();
+      }
+    };
+    const refreshOnResume = () => {
+      if (document.visibilityState === 'visible') void loadRecords();
+    };
+    const timer = window.setInterval(refreshOnNewDay, 30_000);
+    document.addEventListener('visibilitychange', refreshOnResume);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refreshOnResume);
+    };
   }, [loadRecords]);
 
   // Handle day click

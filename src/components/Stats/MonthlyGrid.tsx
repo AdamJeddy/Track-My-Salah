@@ -49,6 +49,7 @@ export function MonthlyGrid({ records, year, month, calendarMode = 'gregorian', 
 
     if (day.missed > 0) return 'poor';
     if (day.unrecorded > 0) return 'unrecorded';
+    if (day.prayersLogged.size === 0) return 'empty';
 
     const prayed = day.completed;
     const relevant = Math.max(PRAYER_NAMES.length - day.excused, 0);

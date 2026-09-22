@@ -1,7 +1,7 @@
 import { PrayerRecord, PRAYER_NAMES } from '../../models/PrayerRecord';
 import { Flame, Trophy, Target } from 'lucide-react';
 import { getFirstRecordDate, getTimelineDays } from '../../utils/statsUtils';
-import { getCompactGregorianDate } from '../../utils/dateUtils';
+import { getCompactGregorianDate, getTodayGregorian } from '../../utils/dateUtils';
 
 interface StatisticsCardProps {
   records: PrayerRecord[];
@@ -19,7 +19,11 @@ function calculateStats(records: PrayerRecord[]) {
   };
 
   let currentStreak = 0;
-  for (let i = sortedDays.length - 1; i >= 0 && isGoodDay(sortedDays[i]); i--) {
+  const lastDay = sortedDays[sortedDays.length - 1];
+  const streakEnd = lastDay?.date === getTodayGregorian() && !isGoodDay(lastDay)
+    ? sortedDays.length - 2
+    : sortedDays.length - 1;
+  for (let i = streakEnd; i >= 0 && isGoodDay(sortedDays[i]); i--) {
     currentStreak++;
   }
 
@@ -47,7 +51,9 @@ function calculateStats(records: PrayerRecord[]) {
   sortedDays.forEach((day) => {
     totalPrayed += day.completed;
     totalQada += day.qada;
-    totalRelevant += Math.max(PRAYER_NAMES.length - day.excused, 0);
+    totalRelevant += day.date === getTodayGregorian()
+      ? Math.max(day.prayersLogged.size - day.excused, 0)
+      : Math.max(PRAYER_NAMES.length - day.excused, 0);
   });
   
   const consistency = totalRelevant > 0 

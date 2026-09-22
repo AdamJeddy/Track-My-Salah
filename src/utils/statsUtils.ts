@@ -56,8 +56,7 @@ export function getTrackingRange(records: PrayerRecord[]): TrackingRange | null 
     return null;
   }
 
-  // Exclude today since the day hasn't finished yet
-  const endDate = addDays(getTodayGregorian(), -1);
+  const endDate = getTodayGregorian();
   if (startDate > endDate) {
     return null;
   }
@@ -88,7 +87,7 @@ export function buildTimelineDayMap(records: PrayerRecord[]): Map<string, Timeli
       const day = dayMap.get(record.gregorian_date) ?? createEmptyDay(record.gregorian_date);
 
       day.hasAnyRecord = true;
-      day.prayersLogged.add(record.prayer_name);
+      if (record.status !== null) day.prayersLogged.add(record.prayer_name);
       day.total++;
 
       if (record.hijri_date) {
@@ -114,8 +113,11 @@ export function buildTimelineDayMap(records: PrayerRecord[]): Map<string, Timeli
     });
 
   dayMap.forEach((day) => {
-    day.isSkipped = !day.hasAnyRecord && day.date >= range.startDate && day.date <= range.endDate;
-    day.unrecorded = Math.max(PRAYER_NAMES.length - day.prayersLogged.size, 0);
+    day.isSkipped = !day.hasAnyRecord && day.date >= range.startDate && day.date < range.endDate;
+    // Today's remaining prayers are still pending, not missed.
+    day.unrecorded = day.date === getTodayGregorian()
+      ? 0
+      : Math.max(PRAYER_NAMES.length - day.prayersLogged.size, 0);
   });
 
   return dayMap;
