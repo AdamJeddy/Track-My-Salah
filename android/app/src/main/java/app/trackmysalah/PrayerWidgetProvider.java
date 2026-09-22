@@ -17,8 +17,8 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
     private static final String PREFS_NAME = "prayer_widget_prefs";
     private static final String KEY_DATA = "widget_month";
 
-    private static final int[] CELL_IDS = new int[35];
-    static { for (int i = 0; i < 35; i++) CELL_IDS[i] = getCellId(i); }
+    private static final int[] CELL_IDS = new int[42];
+    static { for (int i = 0; i < CELL_IDS.length; i++) CELL_IDS[i] = getCellId(i); }
 
     private static int getCellId(int i) {
         switch (i) {
@@ -31,6 +31,8 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
             case 24: return R.id.cell_24; case 25: return R.id.cell_25; case 26: return R.id.cell_26; case 27: return R.id.cell_27;
             case 28: return R.id.cell_28; case 29: return R.id.cell_29; case 30: return R.id.cell_30; case 31: return R.id.cell_31;
             case 32: return R.id.cell_32; case 33: return R.id.cell_33; case 34: return R.id.cell_34;
+            case 35: return R.id.cell_35; case 36: return R.id.cell_36; case 37: return R.id.cell_37;
+            case 38: return R.id.cell_38; case 39: return R.id.cell_39; case 40: return R.id.cell_40; case 41: return R.id.cell_41;
             default: return 0;
         }
     }
@@ -70,7 +72,8 @@ public class PrayerWidgetProvider extends AppWidgetProvider {
             v.setTextColor(R.id.summary_text, sc);
             v.setOnClickPendingIntent(R.id.widget_header, PendingIntent.getActivity(ctx, 1000, new Intent(ctx, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
 
-            for (int p = 0; p < 35; p++) {
+            v.setViewVisibility(R.id.sixth_week, firstDow + numDays > 35 ? android.view.View.VISIBLE : android.view.View.GONE);
+            for (int p = 0; p < CELL_IDS.length; p++) {
                 if (p < firstDow || p >= firstDow + numDays) v.setViewVisibility(CELL_IDS[p], android.view.View.INVISIBLE);
                 else {
                     v.setViewVisibility(CELL_IDS[p], android.view.View.VISIBLE);
