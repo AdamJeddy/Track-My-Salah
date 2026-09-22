@@ -11,10 +11,11 @@ const PrayerWidget = registerPlugin<PrayerWidgetPlugin>('PrayerWidget');
 function getDayStatus(records: { prayer_name: PrayerName; status: string | null }[]): WidgetDayData['status'] {
   const nonNull = records.filter(r => r.status !== null);
   if (nonNull.length === 0) return 'none';
-  const completed = nonNull.filter(r => r.status === 'Jamah' || r.status === 'Prayed').length;
+  const completed = nonNull.filter(r => r.status === 'Jamah' || r.status === 'Prayed' || r.status === 'Qada').length;
+  const excused = nonNull.filter(r => r.status === 'Excused').length;
   if (nonNull.filter(r => r.status === 'Missed').length > 0) return 'missed';
-  if (completed === PRAYER_NAMES.length) return 'complete';
-  if (completed > 0) return 'partial';
+  if (completed + excused === PRAYER_NAMES.length) return 'complete';
+  if (completed + excused > 0) return 'partial';
   return 'none';
 }
 
@@ -31,10 +32,9 @@ function buildMonth(y: number, m: number, records: { gregorian_date: string; pra
 }
 
 export async function pushMonthToWidget(): Promise<void> {
-  if (!Capacitor.isNativePlatform()) return;
+  if (Capacitor.getPlatform() !== 'android') return;
   const all = await getAllRecords();
-  const now = new Date(); let y = now.getFullYear(), m = now.getMonth();
-  let data = buildMonth(y, m, all);
-  if (data.trackedDays === 0 && all.length > 0) { if (m === 0) { y--; m=11; } else m--; data = buildMonth(y, m, all); }
-  try { await PrayerWidget.updateWidgetData({ data }); } catch (e) { console.error('Widget push failed:', e); }
+  const now = new Date();
+  const data = buildMonth(now.getFullYear(), now.getMonth(), all);
+  await PrayerWidget.updateWidgetData({ data });
 }
