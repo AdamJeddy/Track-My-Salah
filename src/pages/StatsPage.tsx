@@ -103,13 +103,13 @@ export function StatsPage() {
   }, [loadRecords]);
 
   useEffect(() => {
-    if (new URLSearchParams(location.search).get('view') !== 'calendar') return;
+    if (loading || new URLSearchParams(location.search).get('view') !== 'calendar') return;
 
     const frame = window.requestAnimationFrame(() => {
       document.getElementById('calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [location.search]);
+  }, [loading, location.search]);
 
   // Handle day click
   const handleDayClick = async (date: string) => {
