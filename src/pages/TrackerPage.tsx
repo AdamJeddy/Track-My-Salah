@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PrayerName, PrayerStatus } from '../models/PrayerRecord';
+import { PrayerName, PrayerRecord, PrayerStatus } from '../models/PrayerRecord';
 import { getTodayGregorian, addDays, isFutureDate } from '../utils/dateUtils';
-import { getRecordsByDate, saveRecord, getGenderPreference } from '../services/localStorageService';
-import { DualDateHeader, PrayerList, DailySummary } from '../components/Tracker';
+import { getAllRecords, getRecordsByDate, saveRecord, getGenderPreference } from '../services/localStorageService';
+import { DualDateHeader, PrayerList, DailySummary, RecoveryCard } from '../components/Tracker';
 
 export function TrackerPage() {
   const location = useLocation();
@@ -18,14 +18,19 @@ export function TrackerPage() {
   });
   const [loading, setLoading] = useState(true);
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
+  const [allRecords, setAllRecords] = useState<PrayerRecord[]>([]);
 
   // Load records for selected date
   const loadRecords = useCallback(async () => {
     setLoading(true);
     try {
-      const records = await getRecordsByDate(selectedDate);
-      const savedGender = await getGenderPreference();
+      const [records, savedGender, savedRecords] = await Promise.all([
+        getRecordsByDate(selectedDate),
+        getGenderPreference(),
+        getAllRecords(),
+      ]);
       setGender(savedGender);
+      setAllRecords(savedRecords);
       
       // Initialize all to null
       const statuses: Record<PrayerName, PrayerStatus> = {
@@ -60,6 +65,7 @@ export function TrackerPage() {
     
     try {
       await saveRecord(selectedDate, prayer, status);
+      setAllRecords(await getAllRecords());
     } catch (error) {
       console.error('Failed to save record:', error);
       // Revert on error
@@ -118,6 +124,8 @@ export function TrackerPage() {
               disabled={isDisabled}
               gender={gender}
             />
+
+            {selectedDate === getTodayGregorian() && <RecoveryCard records={allRecords} />}
 
             {/* Daily Summary */}
             <DailySummary prayerStatuses={prayerStatuses} gender={gender} />
