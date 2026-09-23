@@ -1,7 +1,6 @@
 import localforage from 'localforage';
 import { getAllRecords } from './localStorageService';
-import { getPeriodSummary } from '../utils/statsUtils';
-import { addDays, getTodayGregorian } from '../utils/dateUtils';
+import { buildNotificationInsight } from '../utils/notificationInsights';
 
 export type NotificationSettings = {
   enabled: boolean;
@@ -89,43 +88,10 @@ function getMsUntilNextFirstOfMonth(h: number, m: number): number {
   return target.getTime() - now.getTime();
 }
 
-function formatPercent(value: number, total: number): number {
-  if (total === 0) return 0;
-  return Math.round((value / total) * 100);
-}
-
 async function buildSummaryBody(period: 'weekly' | 'monthly'): Promise<string | null> {
   const records = await getAllRecords();
   if (records.length === 0) return null;
-
-  const today = getTodayGregorian();
-
-  let startDate: string;
-  let endDate: string;
-  let label: string;
-
-  if (period === 'weekly') {
-    endDate = addDays(today, -1);
-    startDate = addDays(today, -7);
-    label = 'This week';
-  } else {
-    const now = new Date();
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const year = prevMonth.getFullYear();
-    const month = prevMonth.getMonth();
-    const lastDay = new Date(year, month + 1, 0);
-    startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-    endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
-    label = 'Last month';
-  }
-
-  const summary = getPeriodSummary(records, startDate, endDate);
-  if (summary.totalPossible === 0) return null;
-
-  const jamahPct = formatPercent(summary.jamah, summary.totalPossible);
-  const onTimePct = formatPercent(summary.onTime, summary.totalPossible);
-
-  return `${label}: ${summary.jamah} Jamah (${jamahPct}%), ${summary.onTime} on time (${onTimePct}%)`;
+  return buildNotificationInsight(records, period);
 }
 
 async function showReminder(registration: ServiceWorkerRegistration) {
@@ -147,8 +113,8 @@ async function showSummaryNotification(
 ) {
   try {
     const body = (await buildSummaryBody(period))
-      || 'Your prayer summary is ready. Open the app to view it.';
-    const title = period === 'weekly' ? 'Weekly prayer summary' : 'Monthly prayer summary';
+      || 'Your prayer insight is ready. Open the app to view it.';
+    const title = period === 'weekly' ? 'Weekly prayer insight' : 'Monthly prayer insight';
     await registration.showNotification(title, {
       body,
       icon: '/android-chrome-192x192.png',

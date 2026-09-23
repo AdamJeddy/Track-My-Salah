@@ -336,13 +336,14 @@ export function buildInsightSummary(
   comparisonStartDate: string,
   comparisonEndDate: string,
   label: string,
+  today = getTodayGregorian(),
 ): string | null {
-  const period = getOnTimeRate(records, startDate, endDate);
+  const period = getOnTimeRate(records, startDate, endDate, today);
   if (period.eligible === 0) return null;
 
-  const strongest = [...getPrayerPerformance(records, startDate, endDate)]
+  const strongest = [...getPrayerPerformance(records, startDate, endDate, today)]
     .sort((a, b) => b.rate - a.rate)[0];
-  const comparison = getOnTimeRate(records, comparisonStartDate, comparisonEndDate);
+  const comparison = getOnTimeRate(records, comparisonStartDate, comparisonEndDate, today);
   const trend = comparison.eligible > 0 ? period.rate - comparison.rate : null;
   const trendText = trend === null
     ? ''

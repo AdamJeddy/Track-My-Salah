@@ -130,10 +130,10 @@ export function SettingsPage() {
       const nextSettings: NotificationSettings = { ...notificationSettings, weeklySummaryEnabled: enabled };
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
-      setMessage({ type: 'success', text: enabled ? 'Weekly summary enabled.' : 'Weekly summary disabled.' });
+      setMessage({ type: 'success', text: enabled ? 'Weekly insight enabled.' : 'Weekly insight disabled.' });
     } catch (error) {
       console.error('Failed to update weekly summary:', error);
-      setMessage({ type: 'error', text: 'Could not update weekly summary.' });
+      setMessage({ type: 'error', text: 'Could not update weekly insight.' });
     } finally {
       setNotificationLoading(false);
     }
@@ -146,10 +146,10 @@ export function SettingsPage() {
       const nextSettings: NotificationSettings = { ...notificationSettings, monthlySummaryEnabled: enabled };
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
-      setMessage({ type: 'success', text: enabled ? 'Monthly summary enabled.' : 'Monthly summary disabled.' });
+      setMessage({ type: 'success', text: enabled ? 'Monthly insight enabled.' : 'Monthly insight disabled.' });
     } catch (error) {
       console.error('Failed to update monthly summary:', error);
-      setMessage({ type: 'error', text: 'Could not update monthly summary.' });
+      setMessage({ type: 'error', text: 'Could not update monthly insight.' });
     } finally {
       setNotificationLoading(false);
     }
@@ -389,12 +389,15 @@ export function SettingsPage() {
             {/* Weekly summary toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Weekly summary</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Every Friday, a recap of the past 7 days</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Weekly insight</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Every Friday: on-time rate, strongest prayer, and recent direction</p>
               </div>
               <button
                 onClick={() => handleWeeklySummaryToggle(!notificationSettings.weeklySummaryEnabled)}
                 disabled={!notificationsSupported || notificationLoading}
+                role="switch"
+                aria-checked={notificationSettings.weeklySummaryEnabled}
+                aria-label="Weekly insight notifications"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   notificationSettings.weeklySummaryEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'
                 } disabled:opacity-50`}
@@ -410,12 +413,15 @@ export function SettingsPage() {
             {/* Monthly summary toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Monthly summary</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">On the 1st, a recap of the previous month</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Monthly insight</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">On the 1st: your previous month with a month-over-month comparison</p>
               </div>
               <button
                 onClick={() => handleMonthlySummaryToggle(!notificationSettings.monthlySummaryEnabled)}
                 disabled={!notificationsSupported || notificationLoading}
+                role="switch"
+                aria-checked={notificationSettings.monthlySummaryEnabled}
+                aria-label="Monthly insight notifications"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   notificationSettings.monthlySummaryEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'
                 } disabled:opacity-50`}
