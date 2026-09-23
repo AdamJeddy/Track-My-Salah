@@ -11,6 +11,7 @@ import {
   MonthlyGrid,
   DayDetailModal,
   CalendarToggle,
+  InsightsCard,
 } from '../components/Stats';
 import momentHijri from 'moment-hijri';
 
@@ -185,6 +186,8 @@ export function StatsPage() {
 
         {/* Statistics Card */}
         <StatisticsCard records={records} />
+
+        <InsightsCard records={records} />
 
         {/* Missed Log */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm space-y-3">
