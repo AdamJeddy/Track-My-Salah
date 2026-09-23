@@ -33,6 +33,13 @@ describe('live statistics (#4)', () => {
     expect(result).toContain('Missed + Unrecorded Prayers0');
   });
 
+  it('breaks the current streak when a prayer is explicitly missed today', () => {
+    const missedToday = { ...day('2026-09-22')[0], status: 'Missed' as const };
+    const result = text([...day('2026-09-21'), missedToday]);
+    expect(result).toContain('0Current Streak');
+    expect(result).toContain('1Best Streak');
+  });
+
   it('retains historical best streak after a missed day (#5)', () => {
     const result = text([...day('2026-09-18'), ...day('2026-09-19'), ...day('2026-09-21')]);
     expect(result).toContain('1Current Streak');

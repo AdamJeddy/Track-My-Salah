@@ -20,7 +20,7 @@ function calculateStats(records: PrayerRecord[]) {
 
   let currentStreak = 0;
   const lastDay = sortedDays[sortedDays.length - 1];
-  const streakEnd = lastDay?.date === getTodayGregorian() && !isGoodDay(lastDay)
+  const streakEnd = lastDay?.date === getTodayGregorian() && lastDay.missed === 0 && !isGoodDay(lastDay)
     ? sortedDays.length - 2
     : sortedDays.length - 1;
   for (let i = streakEnd; i >= 0 && isGoodDay(sortedDays[i]); i--) {

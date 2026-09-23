@@ -14,7 +14,7 @@ Verified a CSV download of 70 sample records and a visible mobile confirmation. 
 
 ## #4: Current-day statistics
 
-The shared timeline now includes today's recorded prayers. Pending slots today do not count as missed or reduce consistency. Completing today extends the streak; an unfinished day preserves yesterday's streak. Statistics reload on resume and date rollover. Cleared historical prayer slots count as unrecorded.
+The shared timeline now includes today's recorded prayers. Pending slots today do not count as missed or reduce consistency. Completing today extends the streak; an unfinished day preserves yesterday's streak, while an explicitly missed prayer breaks it. Statistics reload on resume and date rollover. Cleared historical prayer slots count as unrecorded.
 
 Seven regression tests cover current-day totals, partial days, empty/future data, cleared prayers, and historical best streak preservation (#5). In the browser, marking today's Fajr as prayed increased completed prayers from 47 to 48 while missed/unrecorded remained 12.
 
@@ -28,7 +28,7 @@ Device checks still needed: add/re-add the widget, log and edit prayers, import/
 
 ## Verification commands
 
-- `npm test`: 14 passing tests.
+- `npm test`: 15 passing tests.
 - `npm run build`: passed.
 - `npm run lint`: passed with two existing Fast Refresh warnings in StatusToggle and ThemeContext.
 - Android debug build: passed; Gradle reports existing flatDir/deprecation warnings.
