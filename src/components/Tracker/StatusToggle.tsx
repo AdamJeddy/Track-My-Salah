@@ -1,12 +1,13 @@
 import { Check, RotateCcw, Shield, Users, X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { PrayerStatus, PRAYER_STATUS_OPTIONS } from '../../models/PrayerRecord';
+import { PrayerName, PrayerStatus, PRAYER_STATUS_OPTIONS } from '../../models/PrayerRecord';
 
 interface StatusToggleProps {
   currentStatus: PrayerStatus;
   onStatusChange: (status: PrayerStatus) => void;
   disabled?: boolean;
   gender?: 'male' | 'female' | null;
+  prayerName: PrayerName;
 }
 
 export const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
@@ -59,7 +60,7 @@ export const STATUS_CONFIG: Record<NonNullable<PrayerStatus>, {
   },
 };
 
-export function StatusToggle({ currentStatus, onStatusChange, disabled, gender }: StatusToggleProps) {
+export function StatusToggle({ currentStatus, onStatusChange, disabled, gender, prayerName }: StatusToggleProps) {
   const handleClick = (status: NonNullable<PrayerStatus>) => {
     if (disabled) return;
     // Toggle: if same status clicked, set to null; otherwise set new status
@@ -92,6 +93,7 @@ export function StatusToggle({ currentStatus, onStatusChange, disabled, gender }
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'}
             `}
             aria-pressed={isActive}
+            aria-label={`${prayerName}: ${config.label}`}
             title={config.label}
           >
             {config.label}

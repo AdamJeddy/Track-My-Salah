@@ -54,7 +54,7 @@ Key characteristics:
 ### Pages
 
 - `src/pages/OnboardingPage.tsx`
-  - First-run flow.
+  - First-run flow with a three-step first-week guide covering prayer statuses, strict on-time streaks, and local backups.
   - Collects gender.
   - Can import generated sample data for demo/testing.
 
@@ -67,7 +67,7 @@ Key characteristics:
   - Loads records on entry, app resume, and date rollover, and derives:
     - streaks
     - consistency
-    - missed prayer groups
+    - a compact missed-prayer review with an in-page calendar route for full date details
     - monthly calendar status
     - yearly heatmap status
 
@@ -91,6 +91,7 @@ Key characteristics:
   - Yearly heatmap
   - Day detail modal
   - Calendar mode toggle
+  - Compact missed-prayer review summary
 
 - `src/components/Navigation/BottomNav.tsx`
   - Bottom tab navigation for non-onboarding routes.
@@ -191,6 +192,7 @@ Browser-only `localStorage` keys:
 
 `OnboardingPage.tsx` does two important things besides the welcome UI:
 
+- Explains the first-week logging flow and makes streak and backup rules explicit before users begin.
 - Saves gender preference before entering the app.
 - Optionally generates 14 days of sample records via `buildSampleData()`.
 
@@ -222,6 +224,8 @@ The page currently treats `Prayed`, `Jamah`, and `Qada` as completed prayers in 
 
 Today's recorded prayers contribute immediately to totals and calendars. Pending slots today do not count as missed or lower consistency. Current and best streaks require every non-excused prayer to be completed on time as `Prayed` or `Jamah`; Qada, missed, and past unrecorded prayers break a streak. A fully excused day preserves a streak without increasing it.
 
+The headline rate uses the latest 30 calendar days, starts no earlier than the first record, excludes excused prayers, and excludes today's still-pending prayers. The streak cards expose the rule and most recent break. `InsightsCard` uses the same local calculations to show the strongest prayer, a gentle focus area, and the latest seven-day direction.
+
 ### Settings page
 
 `SettingsPage.tsx` is the operational settings hub.
@@ -231,9 +235,16 @@ Important behaviors:
 - Theme is controlled through `ThemeContext`.
 - Gender changes affect available tracker status options.
 - Notification toggles go through the platform-specific notification service.
-- Export creates a CSV from current local records.
+- Export creates a CSV from current local records and stores local metadata for the latest successful backup.
 - Success and error messages remain visible above navigation while scrolling and can be dismissed.
 - Import validates prayer names, statuses, and date format before saving.
+
+### Recovery and accessibility
+
+- The tracker shows a contextual recovery card after a strict streak break without changing streak calculations.
+- Recovery guidance points to the next unlogged prayer, or acknowledges a fully logged day.
+- Prayer rows pair English and Arabic names, and status controls include prayer-specific accessible labels.
+- Global motion is minimized when the operating system requests reduced motion.
 - Clear data removes prayer records only.
 
 ## Notifications
@@ -252,6 +263,7 @@ Notifications are intentionally split by platform.
 - Requests browser notification permission.
 - Uses `navigator.serviceWorker.ready`.
 - Schedules reminders with `setTimeout`, then reschedules after firing.
+- Builds weekly and monthly insight text when each summary fires.
 
 Practical limitation:
 
@@ -264,6 +276,9 @@ Practical limitation:
 - Uses `@capacitor/local-notifications`.
 - Cancels the existing scheduled notification before reapplying settings.
 - Schedules a daily local notification at the chosen hour/minute.
+- Schedules opt-in weekly and monthly insight notifications with on-time rate, strongest prayer, and period-over-period direction.
+
+Native notification bodies are generated when the schedule is applied (app startup or a notification-setting change). The Stats screen always calculates from the latest records.
 
 ## Offline And PWA Behavior
 

@@ -26,14 +26,15 @@ describe('live statistics and on-time streaks (#4, #5)', () => {
     expect(result).toContain('2Current On-Time Streak');
     expect(result).toContain('2Best On-Time Streak');
     expect(result).toContain('Prayers Completed10');
-    expect(result).toContain('100%Consistency');
+    expect(result).toContain('100%30-Day On-Time');
+    expect(result).toContain('How on-time streaks work');
   });
 
   it('preserves the streak while today is pending without penalizing consistency', () => {
     const result = text([...day('2026-09-21'), day('2026-09-22')[0]]);
     expect(result).toContain('1Current On-Time Streak');
     expect(result).toContain('Prayers Completed6');
-    expect(result).toContain('100%Consistency');
+    expect(result).toContain('100%30-Day On-Time');
     expect(result).toContain('Missed + Unrecorded Prayers0');
   });
 

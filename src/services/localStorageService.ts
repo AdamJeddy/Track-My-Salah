@@ -12,6 +12,13 @@ localforage.config({
 
 // Key prefix for prayer records
 const RECORD_PREFIX = 'prayer_';
+const BACKUP_METADATA_KEY = 'backup_metadata';
+
+export interface BackupMetadata {
+  createdAt: string;
+  recordCount: number;
+  destination: string;
+}
 
 async function refreshWidget(): Promise<void> {
   try {
@@ -225,4 +232,12 @@ export async function getOnboardingStatus(): Promise<boolean> {
 
 export async function setOnboardingStatus(completed: boolean): Promise<void> {
   await localforage.setItem('onboarded', completed);
+}
+
+export async function getBackupMetadata(): Promise<BackupMetadata | null> {
+  return localforage.getItem<BackupMetadata>(BACKUP_METADATA_KEY);
+}
+
+export async function setBackupMetadata(metadata: BackupMetadata): Promise<void> {
+  await localforage.setItem(BACKUP_METADATA_KEY, metadata);
 }

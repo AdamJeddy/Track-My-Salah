@@ -90,6 +90,7 @@ export function DayDetailModal({ date, records, gender, onStatusChange, onOpenIn
                     onStatusChange={(nextStatus) => onStatusChange(date, prayer, nextStatus)}
                     disabled={disabled}
                     gender={gender}
+                    prayerName={prayer}
                   />
                 )}
               </div>

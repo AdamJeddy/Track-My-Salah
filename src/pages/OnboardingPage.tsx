@@ -1,34 +1,28 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, BarChart3, CalendarClock, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { CheckCircle2, Download, Flame, ListChecks, Sparkles, Users } from 'lucide-react';
 import { importRecords, setGenderPreference, setOnboardingStatus } from '../services/localStorageService';
 import { PRAYER_NAMES, PrayerRecord, PrayerStatus } from '../models/PrayerRecord';
 import { addDays, getTodayGregorian, gregorianToHijri } from '../utils/dateUtils';
 
-const FEATURES = [
+const FIRST_WEEK_STEPS = [
   {
-    icon: CheckCircle2,
-    title: 'Track Daily Prayers',
-    desc: 'Monitor all five daily prayers with status options: Prayed, Jamah, Missed, or Excused',
+    icon: ListChecks,
+    title: 'Log honestly',
+    desc: 'Prayed or Jamah count as on time. Qada means made up later, Missed means missed, and Excused removes a prayer from that day’s requirement.',
     color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-100',
   },
   {
-    icon: BarChart3,
-    title: 'Visualize Progress',
-    desc: 'See your consistency with beautiful heatmaps and monthly calendars',
+    icon: Flame,
+    title: 'Strict on-time streaks',
+    desc: 'A streak grows only when every required prayer is Prayed or Jamah. Qada, missed, and past unrecorded prayers break it; fully excused days are neutral.',
     color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-100',
   },
   {
-    icon: CalendarClock,
-    title: 'Gregorian & Hijri',
-    desc: 'View dates in both Gregorian and Hijri calendars',
+    icon: Download,
+    title: 'Keep a local backup',
+    desc: 'After your first few entries, use Settings → Export Data (CSV). The app will show when your latest backup was made.',
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-100',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Private & Offline',
-    desc: 'All data stays on your device. No servers, complete privacy',
-    color: 'bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-100',
   },
 ];
 
@@ -97,7 +91,7 @@ export function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white">
-      <div className="max-w-lg mx-auto px-6 py-10 space-y-8">
+      <div className="max-w-lg mx-auto px-6 py-10 space-y-6">
         {/* Hero */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="w-20 h-20 rounded-full bg-emerald-600/90 flex items-center justify-center shadow-lg shadow-emerald-800/40">
@@ -105,19 +99,27 @@ export function OnboardingPage() {
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">TrackMySalah</h1>
-            <p className="text-slate-300 text-base">Build consistency in your spiritual journey</p>
+            <p className="text-slate-300 text-base">Start today, one prayer at a time</p>
           </div>
         </div>
 
-        {/* Features */}
+        <section aria-labelledby="first-week-title" className="space-y-3">
+          <div className="text-center">
+            <h2 id="first-week-title" className="text-xl font-semibold text-white">Your first week</h2>
+            <p className="mt-1 text-sm text-slate-300">Log today, learn the rules, and keep a copy of your progress.</p>
+          </div>
+
         <div className="space-y-3">
-          {FEATURES.map((item) => (
+          {FIRST_WEEK_STEPS.map((item, index) => (
             <div
               key={item.title}
               className="flex gap-4 bg-slate-800/60 backdrop-blur rounded-2xl p-4 border border-white/5 shadow-md"
             >
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${item.color}`}>
+              <div className={`relative w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${item.color}`}>
                 <item.icon className="w-7 h-7 stroke-[1.5]" />
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-white">
+                  {index + 1}
+                </span>
               </div>
               <div className="space-y-1">
                 <h3 className="text-lg font-semibold text-white">{item.title}</h3>
@@ -126,9 +128,12 @@ export function OnboardingPage() {
             </div>
           ))}
         </div>
-
+        </section>
         {/* Actions */}
         <div className="space-y-3">
+          <p className="text-center text-sm text-slate-300">
+            Gender selection only changes available status options. You can change this later in Settings.
+          </p>
           <button
             onClick={handleGetStarted}
             disabled={loading}
@@ -164,7 +169,7 @@ export function OnboardingPage() {
             </div>
             
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center">
-              This helps us customize your prayer tracking experience.
+              This helps us customize your prayer tracking experience. You can change this later in Settings.
             </p>
             
             <div className="space-y-3">

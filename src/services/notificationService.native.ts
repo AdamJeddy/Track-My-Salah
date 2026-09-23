@@ -2,37 +2,22 @@ import { LocalNotifications, type ScheduleOptions } from '@capacitor/local-notif
 import { Capacitor } from '@capacitor/core';
 import localforage from 'localforage';
 import { getAllRecords } from './localStorageService';
-import { getPeriodSummary } from '../utils/statsUtils';
-import { addDays, getTodayGregorian } from '../utils/dateUtils';
+import { buildNotificationInsight } from '../utils/notificationInsights';
+import {
+  normalizeNotificationSettings,
+  type NotificationSettings,
+} from './notificationSettings';
 
-export type NotificationSettings = {
-  enabled: boolean;
-  time: string; // HH:mm 24h
-  weeklySummaryEnabled: boolean;
-  monthlySummaryEnabled: boolean;
-};
+export type { NotificationSettings } from './notificationSettings';
 
 const SETTINGS_KEY = 'notification_settings';
-const DEFAULT_SETTINGS: NotificationSettings = {
-  enabled: false,
-  time: '21:00',
-  weeklySummaryEnabled: true,
-  monthlySummaryEnabled: true,
-};
-
 const DAILY_ID = 1;
 const WEEKLY_ID = 2;
 const MONTHLY_ID = 3;
 
 export async function getNotificationSettings(): Promise<NotificationSettings> {
-  const stored = await localforage.getItem<NotificationSettings>(SETTINGS_KEY);
-  if (!stored) return DEFAULT_SETTINGS;
-  return {
-    enabled: stored.enabled ?? DEFAULT_SETTINGS.enabled,
-    time: stored.time || DEFAULT_SETTINGS.time,
-    weeklySummaryEnabled: stored.weeklySummaryEnabled ?? DEFAULT_SETTINGS.weeklySummaryEnabled,
-    monthlySummaryEnabled: stored.monthlySummaryEnabled ?? DEFAULT_SETTINGS.monthlySummaryEnabled,
-  };
+  const stored = await localforage.getItem<Partial<NotificationSettings>>(SETTINGS_KEY);
+  return normalizeNotificationSettings(stored);
 }
 
 export async function saveNotificationSettings(settings: NotificationSettings): Promise<void> {
@@ -72,45 +57,10 @@ function getNextFirstOfMonth(hour: number, minute: number): Date {
   return target;
 }
 
-function formatPercent(value: number, total: number): number {
-  if (total === 0) return 0;
-  return Math.round((value / total) * 100);
-}
-
 async function buildSummaryBody(period: 'weekly' | 'monthly'): Promise<string | null> {
   const records = await getAllRecords();
   if (records.length === 0) return null;
-
-  const today = getTodayGregorian();
-
-  let startDate: string;
-  let endDate: string;
-  let label: string;
-
-  if (period === 'weekly') {
-    // Past 7 calendar days, ending yesterday
-    endDate = addDays(today, -1);
-    startDate = addDays(today, -7);
-    label = 'This week';
-  } else {
-    // Previous calendar month
-    const now = new Date();
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const year = prevMonth.getFullYear();
-    const month = prevMonth.getMonth();
-    const lastDay = new Date(year, month + 1, 0);
-    startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-    endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
-    label = 'Last month';
-  }
-
-  const summary = getPeriodSummary(records, startDate, endDate);
-  if (summary.totalPossible === 0) return null;
-
-  const jamahPct = formatPercent(summary.jamah, summary.totalPossible);
-  const onTimePct = formatPercent(summary.onTime, summary.totalPossible);
-
-  return `${label}: ${summary.jamah} Jamah (${jamahPct}%), ${summary.onTime} on time (${onTimePct}%)`;
+  return buildNotificationInsight(records, period);
 }
 
 export async function applyNotificationScheduler(settings: NotificationSettings): Promise<void> {
@@ -147,11 +97,11 @@ export async function applyNotificationScheduler(settings: NotificationSettings)
 
   // Weekly summary (Friday)
   if (settings.weeklySummaryEnabled) {
-    const weeklyBody = (await buildSummaryBody('weekly')) || 'Your weekly prayer summary is ready. Open the app to view it.';
+    const weeklyBody = (await buildSummaryBody('weekly')) || 'Your weekly prayer insight is ready. Open the app to view it.';
     const nextFriday = getNextWeekdayDate(5, h, m); // 5 = Friday
     notifications.push({
       id: WEEKLY_ID,
-      title: 'Weekly prayer summary',
+      title: 'Weekly prayer insight',
       body: weeklyBody,
       schedule: { at: nextFriday, allowWhileIdle: true },
       sound: undefined,
@@ -161,11 +111,11 @@ export async function applyNotificationScheduler(settings: NotificationSettings)
 
   // Monthly summary (1st of month)
   if (settings.monthlySummaryEnabled) {
-    const monthlyBody = (await buildSummaryBody('monthly')) || 'Your monthly prayer summary is ready. Open the app to view it.';
+    const monthlyBody = (await buildSummaryBody('monthly')) || 'Your monthly prayer insight is ready. Open the app to view it.';
     const nextFirst = getNextFirstOfMonth(h, m);
     notifications.push({
       id: MONTHLY_ID,
-      title: 'Monthly prayer summary',
+      title: 'Monthly prayer insight',
       body: monthlyBody,
       schedule: { at: nextFirst, allowWhileIdle: true },
       sound: undefined,

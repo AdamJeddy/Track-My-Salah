@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { getAllRecords, importRecords, clearAllRecords, getGenderPreference, setGenderPreference } from '../services/localStorageService';
+import {
+  getAllRecords,
+  importRecords,
+  clearAllRecords,
+  getGenderPreference,
+  setGenderPreference,
+  getBackupMetadata,
+  setBackupMetadata,
+  type BackupMetadata,
+} from '../services/localStorageService';
 import { exportToCSV, exportCSVFile, parseCSV, readFileAsText } from '../utils/exportUtils';
 import {
   Moon,
@@ -14,9 +23,11 @@ import {
   Users,
   BellRing,
   Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   getNotificationSettings,
+  DEFAULT_NOTIFICATION_SETTINGS,
   notificationsPlatform,
   notificationsSupported as notificationSupportAvailable,
   requestNotificationPermission,
@@ -31,10 +42,11 @@ export function SettingsPage() {
   const [importing, setImporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ enabled: false, time: '21:00', weeklySummaryEnabled: true, monthlySummaryEnabled: true });
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notificationsSupported, setNotificationsSupported] = useState<boolean>(true);
+  const [backupMetadata, setBackupMetadataState] = useState<BackupMetadata | null>(null);
 
   // Load gender preference on mount
   useEffect(() => {
@@ -50,11 +62,19 @@ export function SettingsPage() {
         console.error('Failed to load notification settings:', error);
       }
     };
+    const loadBackupMetadata = async () => {
+      try {
+        setBackupMetadataState(await getBackupMetadata());
+      } catch (error) {
+        console.error('Failed to load backup metadata:', error);
+      }
+    };
 
     setNotificationsSupported(notificationSupportAvailable);
 
     loadGender();
     loadNotifications();
+    loadBackupMetadata();
   }, []);
 
   // Handle gender change
@@ -69,26 +89,27 @@ export function SettingsPage() {
     }
   };
 
+  const requestNotificationAccess = async (): Promise<boolean> => {
+    const permission = await requestNotificationPermission();
+    if (permission === 'granted') return true;
+
+    setMessage({
+      type: 'error',
+      text:
+        notificationsPlatform === 'native'
+          ? 'Notifications blocked. Please enable app notifications in Android settings.'
+          : 'Notifications blocked. Please enable permissions in your browser.',
+    });
+    return false;
+  };
+
   const handleNotificationToggle = async (enabled: boolean) => {
     setNotificationLoading(true);
     setMessage(null);
 
     try {
-      let nextSettings: NotificationSettings = { ...notificationSettings, enabled };
-
-      if (enabled) {
-        const permission = await requestNotificationPermission();
-        if (permission !== 'granted') {
-          setMessage({
-            type: 'error',
-            text:
-              notificationsPlatform === 'native'
-                ? 'Notifications blocked. Please enable app notifications in Android settings.'
-                : 'Notifications blocked. Please enable permissions in your browser.',
-          });
-          nextSettings = { ...nextSettings, enabled: false };
-        }
-      }
+      if (enabled && !(await requestNotificationAccess())) return;
+      const nextSettings: NotificationSettings = { ...notificationSettings, enabled };
 
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
@@ -127,13 +148,14 @@ export function SettingsPage() {
     setNotificationLoading(true);
     setMessage(null);
     try {
+      if (enabled && !(await requestNotificationAccess())) return;
       const nextSettings: NotificationSettings = { ...notificationSettings, weeklySummaryEnabled: enabled };
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
-      setMessage({ type: 'success', text: enabled ? 'Weekly summary enabled.' : 'Weekly summary disabled.' });
+      setMessage({ type: 'success', text: enabled ? 'Weekly insight enabled.' : 'Weekly insight disabled.' });
     } catch (error) {
       console.error('Failed to update weekly summary:', error);
-      setMessage({ type: 'error', text: 'Could not update weekly summary.' });
+      setMessage({ type: 'error', text: 'Could not update weekly insight.' });
     } finally {
       setNotificationLoading(false);
     }
@@ -143,13 +165,14 @@ export function SettingsPage() {
     setNotificationLoading(true);
     setMessage(null);
     try {
+      if (enabled && !(await requestNotificationAccess())) return;
       const nextSettings: NotificationSettings = { ...notificationSettings, monthlySummaryEnabled: enabled };
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
-      setMessage({ type: 'success', text: enabled ? 'Monthly summary enabled.' : 'Monthly summary disabled.' });
+      setMessage({ type: 'success', text: enabled ? 'Monthly insight enabled.' : 'Monthly insight disabled.' });
     } catch (error) {
       console.error('Failed to update monthly summary:', error);
-      setMessage({ type: 'error', text: 'Could not update monthly summary.' });
+      setMessage({ type: 'error', text: 'Could not update monthly insight.' });
     } finally {
       setNotificationLoading(false);
     }
@@ -171,6 +194,13 @@ export function SettingsPage() {
       const csv = exportToCSV(records);
       const filename = `trackmysalah_export_${new Date().toISOString().split('T')[0]}.csv`;
       const exportResult = await exportCSVFile(csv, filename);
+      const nextBackupMetadata: BackupMetadata = {
+        createdAt: new Date().toISOString(),
+        recordCount: records.length,
+        destination: exportResult.mode === 'saved' ? 'Documents/TrackMySalah' : 'Downloads',
+      };
+      await setBackupMetadata(nextBackupMetadata);
+      setBackupMetadataState(nextBackupMetadata);
       
       if (exportResult.mode === 'saved') {
         setMessage({ type: 'success', text: `Exported ${records.length} records to Documents/TrackMySalah` });
@@ -389,12 +419,15 @@ export function SettingsPage() {
             {/* Weekly summary toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Weekly summary</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Every Friday, a recap of the past 7 days</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Weekly insight</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Every Friday: on-time rate, strongest prayer, and recent direction</p>
               </div>
               <button
                 onClick={() => handleWeeklySummaryToggle(!notificationSettings.weeklySummaryEnabled)}
                 disabled={!notificationsSupported || notificationLoading}
+                role="switch"
+                aria-checked={notificationSettings.weeklySummaryEnabled}
+                aria-label="Weekly insight notifications"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   notificationSettings.weeklySummaryEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'
                 } disabled:opacity-50`}
@@ -410,12 +443,15 @@ export function SettingsPage() {
             {/* Monthly summary toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Monthly summary</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">On the 1st, a recap of the previous month</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Monthly insight</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">On the 1st: your previous month with a month-over-month comparison</p>
               </div>
               <button
                 onClick={() => handleMonthlySummaryToggle(!notificationSettings.monthlySummaryEnabled)}
                 disabled={!notificationsSupported || notificationLoading}
+                role="switch"
+                aria-checked={notificationSettings.monthlySummaryEnabled}
+                aria-label="Monthly insight notifications"
                 className={`w-12 h-6 rounded-full p-1 transition-colors ${
                   notificationSettings.monthlySummaryEnabled ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-600'
                 } disabled:opacity-50`}
@@ -440,6 +476,20 @@ export function SettingsPage() {
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Data Management
             </h2>
+          </div>
+
+          <div className="flex items-start gap-3 border-b border-gray-100 p-4 dark:border-gray-700" role="status">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary-600 dark:text-primary-400" />
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">
+                {backupMetadata ? 'Latest backup is recorded' : 'No backup recorded yet'}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {backupMetadata
+                  ? `${new Date(backupMetadata.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · ${backupMetadata.recordCount} record${backupMetadata.recordCount === 1 ? '' : 's'} · ${backupMetadata.destination}`
+                  : 'Export a CSV copy so your prayer history can be restored if this device is lost or reset.'}
+              </p>
+            </div>
           </div>
           
           {/* Export */}
@@ -513,7 +563,7 @@ export function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">TrackMySalah</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Version 0.2.0 Beta</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Version 0.5.0 Beta</p>
               </div>
             </div>
             
