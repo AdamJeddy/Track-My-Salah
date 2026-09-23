@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { getAllRecords, importRecords, clearAllRecords, getGenderPreference, setGenderPreference } from '../services/localStorageService';
+import {
+  getAllRecords,
+  importRecords,
+  clearAllRecords,
+  getGenderPreference,
+  setGenderPreference,
+  getBackupMetadata,
+  setBackupMetadata,
+  type BackupMetadata,
+} from '../services/localStorageService';
 import { exportToCSV, exportCSVFile, parseCSV, readFileAsText } from '../utils/exportUtils';
 import {
   Moon,
@@ -14,6 +23,7 @@ import {
   Users,
   BellRing,
   Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   getNotificationSettings,
@@ -36,6 +46,7 @@ export function SettingsPage() {
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notificationsSupported, setNotificationsSupported] = useState<boolean>(true);
+  const [backupMetadata, setBackupMetadataState] = useState<BackupMetadata | null>(null);
 
   // Load gender preference on mount
   useEffect(() => {
@@ -51,11 +62,19 @@ export function SettingsPage() {
         console.error('Failed to load notification settings:', error);
       }
     };
+    const loadBackupMetadata = async () => {
+      try {
+        setBackupMetadataState(await getBackupMetadata());
+      } catch (error) {
+        console.error('Failed to load backup metadata:', error);
+      }
+    };
 
     setNotificationsSupported(notificationSupportAvailable);
 
     loadGender();
     loadNotifications();
+    loadBackupMetadata();
   }, []);
 
   // Handle gender change
@@ -175,6 +194,13 @@ export function SettingsPage() {
       const csv = exportToCSV(records);
       const filename = `trackmysalah_export_${new Date().toISOString().split('T')[0]}.csv`;
       const exportResult = await exportCSVFile(csv, filename);
+      const nextBackupMetadata: BackupMetadata = {
+        createdAt: new Date().toISOString(),
+        recordCount: records.length,
+        destination: exportResult.mode === 'saved' ? 'Documents/TrackMySalah' : 'Downloads',
+      };
+      await setBackupMetadata(nextBackupMetadata);
+      setBackupMetadataState(nextBackupMetadata);
       
       if (exportResult.mode === 'saved') {
         setMessage({ type: 'success', text: `Exported ${records.length} records to Documents/TrackMySalah` });
@@ -450,6 +476,20 @@ export function SettingsPage() {
             <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Data Management
             </h2>
+          </div>
+
+          <div className="flex items-start gap-3 border-b border-gray-100 p-4 dark:border-gray-700" role="status">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary-600 dark:text-primary-400" />
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">
+                {backupMetadata ? 'Latest backup is recorded' : 'No backup recorded yet'}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {backupMetadata
+                  ? `${new Date(backupMetadata.createdAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · ${backupMetadata.recordCount} record${backupMetadata.recordCount === 1 ? '' : 's'} · ${backupMetadata.destination}`
+                  : 'Export a CSV copy so your prayer history can be restored if this device is lost or reset.'}
+              </p>
+            </div>
           </div>
           
           {/* Export */}

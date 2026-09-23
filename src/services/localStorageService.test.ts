@@ -15,7 +15,14 @@ vi.mock('localforage', () => ({ default: {
     mocks.data.forEach((value, key) => callback(value, key));
   },
 } }));
-import { clearAllRecords, deleteRecord, importRecords, saveRecord } from './localStorageService';
+import {
+  clearAllRecords,
+  deleteRecord,
+  getBackupMetadata,
+  importRecords,
+  saveRecord,
+  setBackupMetadata,
+} from './localStorageService';
 
 describe('widget synchronization after persistence (#3)', () => {
   beforeEach(() => { mocks.data.clear(); mocks.push.mockReset().mockResolvedValue(undefined); });
@@ -51,5 +58,27 @@ describe('widget synchronization after persistence (#3)', () => {
     } finally {
       log.mockRestore();
     }
+  });
+});
+
+describe('backup metadata', () => {
+  beforeEach(() => {
+    mocks.data.clear();
+  });
+
+  it('starts empty and remembers the latest successful export', async () => {
+    await expect(getBackupMetadata()).resolves.toBeNull();
+
+    await setBackupMetadata({
+      createdAt: '2026-09-23T18:30:00.000Z',
+      recordCount: 42,
+      destination: 'Documents/TrackMySalah',
+    });
+
+    await expect(getBackupMetadata()).resolves.toEqual({
+      createdAt: '2026-09-23T18:30:00.000Z',
+      recordCount: 42,
+      destination: 'Documents/TrackMySalah',
+    });
   });
 });
