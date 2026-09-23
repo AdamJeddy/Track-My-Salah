@@ -345,12 +345,13 @@ export function buildInsightSummary(
     .sort((a, b) => b.rate - a.rate)[0];
   const comparison = getOnTimeRate(records, comparisonStartDate, comparisonEndDate, today);
   const trend = comparison.eligible > 0 ? period.rate - comparison.rate : null;
+  const trendUnit = Math.abs(trend ?? 0) === 1 ? 'point' : 'points';
   const trendText = trend === null
     ? ''
     : trend > 0
-      ? ` Up ${trend} points.`
+      ? ` Up ${trend} ${trendUnit}.`
       : trend < 0
-        ? ` Down ${Math.abs(trend)} points.`
+        ? ` Down ${Math.abs(trend)} ${trendUnit}.`
         : ' Holding steady.';
   const strongestText = strongest ? ` Strongest: ${strongest.prayer} at ${strongest.rate}%.` : '';
 

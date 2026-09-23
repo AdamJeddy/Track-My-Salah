@@ -27,12 +27,13 @@ export function InsightsCard({ records }: InsightsCardProps) {
 
   const trend = insights.sevenDayTrend.change;
   const TrendIcon = trend === null || trend === 0 ? Minus : trend > 0 ? TrendingUp : TrendingDown;
+  const trendUnit = Math.abs(trend ?? 0) === 1 ? 'point' : 'points';
   const trendText = trend === null
     ? 'Keep tracking to unlock a week-over-week comparison.'
     : trend > 0
-      ? `Your on-time rate is up ${trend} points from the previous 7 days.`
+      ? `Your on-time rate is up ${trend} ${trendUnit} from the previous 7 days.`
       : trend < 0
-        ? `Your recent on-time rate is ${Math.abs(trend)} points lower. A fresh week starts now.`
+        ? `Your recent on-time rate is ${Math.abs(trend)} ${trendUnit} lower. A fresh week starts now.`
         : 'Your on-time rate is holding steady compared with the previous 7 days.';
 
   return (
