@@ -102,6 +102,11 @@ export function YearlyHeatmap({ records, year, calendarMode = 'gregorian', onDay
             
             {/* Mini calendar grid */}
             <div className="grid grid-cols-7 gap-[2px]">
+              {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
+                <abbr key={day} title={day} className="text-[8px] text-center no-underline text-gray-600 dark:text-gray-400">
+                  {day.slice(0, 2)}
+                </abbr>
+              ))}
               {/* Empty cells for offset */}
               {Array.from({ length: startDay }).map((_, i) => (
                 <div key={`empty-${i}`} className="aspect-square" />

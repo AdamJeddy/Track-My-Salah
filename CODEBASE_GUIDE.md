@@ -64,7 +64,7 @@ Key characteristics:
   - Saves status changes optimistically.
 
 - `src/pages/StatsPage.tsx`
-  - Loads all records once and derives:
+  - Loads records on entry, app resume, and date rollover, and derives:
     - streaks
     - consistency
     - missed prayer groups
@@ -183,6 +183,7 @@ Browser-only `localStorage` keys:
 - `hijri_date` is recomputed when saving a record.
 - CSV import writes records directly by date/prayer key.
 - Clearing data removes only prayer record keys, not theme or onboarding preferences.
+- Saving, importing, deleting, and clearing records refreshes the Android widget after persistence. Widget failures do not roll back saved records.
 
 ## Page Behavior Details
 
@@ -219,6 +220,8 @@ Important implications:
 
 The page currently treats `Prayed`, `Jamah`, and `Qada` as completed prayers in most aggregate views.
 
+Today's recorded prayers contribute immediately to totals and calendars. Pending slots today do not count as missed or lower consistency. Current and best streaks require every non-excused prayer to be completed on time as `Prayed` or `Jamah`; Qada, missed, and past unrecorded prayers break a streak. A fully excused day preserves a streak without increasing it.
+
 ### Settings page
 
 `SettingsPage.tsx` is the operational settings hub.
@@ -229,6 +232,7 @@ Important behaviors:
 - Gender changes affect available tracker status options.
 - Notification toggles go through the platform-specific notification service.
 - Export creates a CSV from current local records.
+- Success and error messages remain visible above navigation while scrolling and can be dismissed.
 - Import validates prayer names, statuses, and date format before saving.
 - Clear data removes prayer records only.
 
@@ -351,7 +355,7 @@ Anything affecting displayed calendar data should also be checked in:
 ## Known Constraints
 
 - There is no backend, server API, or authentication layer.
-- There is no automated test suite in the repository right now.
+- Run `npm test` for Vitest regression coverage of statistics and widget persistence/data behavior.
 - Stats rely on iterating local records in memory, which is simple and fine for this app size.
 - Some browser-only behavior uses `localStorage` while record data uses `localforage`; that split is intentional.
 - The Android app depends on web assets built into `dist` and then synced into Capacitor.

@@ -13,6 +13,16 @@ localforage.config({
 // Key prefix for prayer records
 const RECORD_PREFIX = 'prayer_';
 
+async function refreshWidget(): Promise<void> {
+  try {
+    const { pushMonthToWidget } = await import('./widgetService');
+    await pushMonthToWidget();
+  } catch (error) {
+    // A widget failure must not undo a successful local save.
+    console.error('Widget refresh failed:', error);
+  }
+}
+
 /**
  * Generate a unique key for a prayer record
  */
@@ -44,6 +54,7 @@ export async function saveRecord(
   };
   
   await localforage.setItem(key, record);
+  await refreshWidget();
   return record;
 }
 
@@ -134,6 +145,7 @@ export async function deleteRecord(
 ): Promise<void> {
   const key = getRecordKey(gregorianDate, prayerName);
   await localforage.removeItem(key);
+  await refreshWidget();
 }
 
 /**
@@ -151,6 +163,7 @@ export async function clearAllRecords(): Promise<void> {
   for (const key of keysToRemove) {
     await localforage.removeItem(key);
   }
+  await refreshWidget();
 }
 
 /**
@@ -168,6 +181,7 @@ export async function importRecords(records: PrayerRecord[]): Promise<number> {
     imported++;
   }
   
+  await refreshWidget();
   return imported;
 }
 
