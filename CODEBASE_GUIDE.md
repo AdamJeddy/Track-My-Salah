@@ -233,9 +233,16 @@ Important behaviors:
 - Theme is controlled through `ThemeContext`.
 - Gender changes affect available tracker status options.
 - Notification toggles go through the platform-specific notification service.
-- Export creates a CSV from current local records.
+- Export creates a CSV from current local records and stores local metadata for the latest successful backup.
 - Success and error messages remain visible above navigation while scrolling and can be dismissed.
 - Import validates prayer names, statuses, and date format before saving.
+
+### Recovery and accessibility
+
+- The tracker shows a contextual recovery card after a strict streak break without changing streak calculations.
+- Recovery guidance points to the next unlogged prayer, or acknowledges a fully logged day.
+- Prayer rows pair English and Arabic names, and status controls include prayer-specific accessible labels.
+- Global motion is minimized when the operating system requests reduced motion.
 - Clear data removes prayer records only.
 
 ## Notifications

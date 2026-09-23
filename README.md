@@ -16,7 +16,9 @@ The project is shipped as:
 - Local-only storage (privacy-first)
 - Offline support via service worker (web) and embedded assets (native)
 - Daily reminders plus optional weekly and monthly insight notifications
-- CSV export/import
+- CSV export/import with a local latest-backup indicator
+- Arabic prayer-name labels and reduced-motion support
+- Gentle next-prayer guidance after a streak break
 
 ## Tech Stack
 
