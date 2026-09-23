@@ -19,6 +19,7 @@ The project is shipped as:
 - CSV export/import with a local latest-backup indicator
 - Arabic prayer-name labels and reduced-motion support
 - Gentle next-prayer guidance after a streak break
+- Compact missed-prayer review with a direct route to editable calendar details
 - A first-week setup guide for statuses, strict streaks, and local backups
 
 ## Tech Stack

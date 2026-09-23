@@ -67,7 +67,7 @@ Key characteristics:
   - Loads records on entry, app resume, and date rollover, and derives:
     - streaks
     - consistency
-    - missed prayer groups
+    - a compact missed-prayer review with an in-page calendar route for full date details
     - monthly calendar status
     - yearly heatmap status
 
@@ -91,6 +91,7 @@ Key characteristics:
   - Yearly heatmap
   - Day detail modal
   - Calendar mode toggle
+  - Compact missed-prayer review summary
 
 - `src/components/Navigation/BottomNav.tsx`
   - Bottom tab navigation for non-onboarding routes.
