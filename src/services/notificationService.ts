@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
-import type { NotificationSettings as NotificationSettingsType } from './notificationService.web';
+import type { NotificationSettings as NotificationSettingsType } from './notificationSettings';
+export { DEFAULT_NOTIFICATION_SETTINGS } from './notificationSettings';
 import * as web from './notificationService.web';
 import * as native from './notificationService.native';
 

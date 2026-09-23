@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import {
   getNotificationSettings,
+  DEFAULT_NOTIFICATION_SETTINGS,
   notificationsPlatform,
   notificationsSupported as notificationSupportAvailable,
   requestNotificationPermission,
@@ -31,7 +32,7 @@ export function SettingsPage() {
   const [importing, setImporting] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ enabled: false, time: '21:00', weeklySummaryEnabled: true, monthlySummaryEnabled: true });
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(DEFAULT_NOTIFICATION_SETTINGS);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notificationsSupported, setNotificationsSupported] = useState<boolean>(true);
@@ -69,26 +70,27 @@ export function SettingsPage() {
     }
   };
 
+  const requestNotificationAccess = async (): Promise<boolean> => {
+    const permission = await requestNotificationPermission();
+    if (permission === 'granted') return true;
+
+    setMessage({
+      type: 'error',
+      text:
+        notificationsPlatform === 'native'
+          ? 'Notifications blocked. Please enable app notifications in Android settings.'
+          : 'Notifications blocked. Please enable permissions in your browser.',
+    });
+    return false;
+  };
+
   const handleNotificationToggle = async (enabled: boolean) => {
     setNotificationLoading(true);
     setMessage(null);
 
     try {
-      let nextSettings: NotificationSettings = { ...notificationSettings, enabled };
-
-      if (enabled) {
-        const permission = await requestNotificationPermission();
-        if (permission !== 'granted') {
-          setMessage({
-            type: 'error',
-            text:
-              notificationsPlatform === 'native'
-                ? 'Notifications blocked. Please enable app notifications in Android settings.'
-                : 'Notifications blocked. Please enable permissions in your browser.',
-          });
-          nextSettings = { ...nextSettings, enabled: false };
-        }
-      }
+      if (enabled && !(await requestNotificationAccess())) return;
+      const nextSettings: NotificationSettings = { ...notificationSettings, enabled };
 
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
@@ -127,6 +129,7 @@ export function SettingsPage() {
     setNotificationLoading(true);
     setMessage(null);
     try {
+      if (enabled && !(await requestNotificationAccess())) return;
       const nextSettings: NotificationSettings = { ...notificationSettings, weeklySummaryEnabled: enabled };
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);
@@ -143,6 +146,7 @@ export function SettingsPage() {
     setNotificationLoading(true);
     setMessage(null);
     try {
+      if (enabled && !(await requestNotificationAccess())) return;
       const nextSettings: NotificationSettings = { ...notificationSettings, monthlySummaryEnabled: enabled };
       await updateNotificationSettings(nextSettings);
       setNotificationSettings(nextSettings);

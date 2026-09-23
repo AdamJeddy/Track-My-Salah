@@ -3,35 +3,21 @@ import { Capacitor } from '@capacitor/core';
 import localforage from 'localforage';
 import { getAllRecords } from './localStorageService';
 import { buildNotificationInsight } from '../utils/notificationInsights';
+import {
+  normalizeNotificationSettings,
+  type NotificationSettings,
+} from './notificationSettings';
 
-export type NotificationSettings = {
-  enabled: boolean;
-  time: string; // HH:mm 24h
-  weeklySummaryEnabled: boolean;
-  monthlySummaryEnabled: boolean;
-};
+export type { NotificationSettings } from './notificationSettings';
 
 const SETTINGS_KEY = 'notification_settings';
-const DEFAULT_SETTINGS: NotificationSettings = {
-  enabled: false,
-  time: '21:00',
-  weeklySummaryEnabled: true,
-  monthlySummaryEnabled: true,
-};
-
 const DAILY_ID = 1;
 const WEEKLY_ID = 2;
 const MONTHLY_ID = 3;
 
 export async function getNotificationSettings(): Promise<NotificationSettings> {
-  const stored = await localforage.getItem<NotificationSettings>(SETTINGS_KEY);
-  if (!stored) return DEFAULT_SETTINGS;
-  return {
-    enabled: stored.enabled ?? DEFAULT_SETTINGS.enabled,
-    time: stored.time || DEFAULT_SETTINGS.time,
-    weeklySummaryEnabled: stored.weeklySummaryEnabled ?? DEFAULT_SETTINGS.weeklySummaryEnabled,
-    monthlySummaryEnabled: stored.monthlySummaryEnabled ?? DEFAULT_SETTINGS.monthlySummaryEnabled,
-  };
+  const stored = await localforage.getItem<Partial<NotificationSettings>>(SETTINGS_KEY);
+  return normalizeNotificationSettings(stored);
 }
 
 export async function saveNotificationSettings(settings: NotificationSettings): Promise<void> {
