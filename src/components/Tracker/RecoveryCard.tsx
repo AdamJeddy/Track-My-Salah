@@ -13,7 +13,7 @@ export function RecoveryCard({ records }: RecoveryCardProps) {
   return (
     <section
       aria-labelledby="recovery-title"
-      className="border-l-4 border-primary-500 bg-primary-50 p-4 dark:bg-primary-950/30"
+      className="border-l-4 border-primary-500 bg-primary-50 p-4 dark:bg-primary-900/30"
     >
       <div className="flex items-start gap-3">
         <Sprout className="mt-0.5 h-5 w-5 shrink-0 text-primary-700 dark:text-primary-300" aria-hidden="true" />
