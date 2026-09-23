@@ -5,7 +5,9 @@ import { MissedPrayerSummary, type MissedPrayerGroup } from './MissedPrayerSumma
 function render(groups: MissedPrayerGroup[]) {
   return renderToStaticMarkup(<MissedPrayerSummary groups={groups} />)
     .replace(/></g, '> <')
-    .replace(/<[^>]*>/g, '');
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 describe('MissedPrayerSummary', () => {
@@ -18,6 +20,9 @@ describe('MissedPrayerSummary', () => {
     expect(content).toContain('2 days to review');
     expect(content).toContain('2 marked missed');
     expect(content).toContain('6 left unrecorded');
+    expect(content).toContain('Missed by prayer');
+    expect(content).toContain('Fajr 1 missed 1 unrecorded');
+    expect(content).toContain('Asr 2 unrecorded');
     expect(content).toContain('View in calendar');
   });
 

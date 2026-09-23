@@ -1,4 +1,5 @@
 import { CalendarDays, CheckCircle2 } from 'lucide-react';
+import { PRAYER_NAMES } from '../../models/PrayerRecord';
 
 export interface MissedPrayerGroup {
   gregorian: string;
@@ -13,6 +14,11 @@ interface MissedPrayerSummaryProps {
 export function MissedPrayerSummary({ groups }: MissedPrayerSummaryProps) {
   const missedCount = groups.reduce((total, group) => total + group.missed.length, 0);
   const unrecordedCount = groups.reduce((total, group) => total + group.unrecorded.length, 0);
+  const prayerBreakdown = PRAYER_NAMES.map((prayer) => ({
+    prayer,
+    missed: groups.reduce((total, group) => total + group.missed.filter((item) => item === prayer).length, 0),
+    unrecorded: groups.reduce((total, group) => total + group.unrecorded.filter((item) => item === prayer).length, 0),
+  })).filter((item) => item.missed > 0 || item.unrecorded > 0);
 
   return (
     <section className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm space-y-3" aria-labelledby="prayer-review-title">
@@ -35,6 +41,20 @@ export function MissedPrayerSummary({ groups }: MissedPrayerSummaryProps) {
             <SummaryValue value={groups.length} label={groups.length === 1 ? 'day to review' : 'days to review'} />
             <SummaryValue value={missedCount} label={missedCount === 1 ? 'marked missed' : 'marked missed'} />
             <SummaryValue value={unrecordedCount} label={unrecordedCount === 1 ? 'left unrecorded' : 'left unrecorded'} />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Missed by prayer</h3>
+            <ul className="divide-y divide-gray-100 dark:divide-gray-700 rounded-lg border border-gray-100 dark:border-gray-700">
+              {prayerBreakdown.map((item) => (
+                <li key={item.prayer} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                  <span className="font-medium text-gray-900 dark:text-white">{item.prayer}</span>
+                  <span className="flex flex-wrap justify-end gap-x-2 gap-y-1 text-xs">
+                    {item.missed > 0 && <span className="font-medium text-missed">{item.missed} missed</span>}
+                    {item.unrecorded > 0 && <span className="text-gray-600 dark:text-gray-300">{item.unrecorded} unrecorded</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">The calendar keeps every date available to review or update.</p>
         </>
