@@ -302,11 +302,15 @@ export function getPrayerInsights(records: PrayerRecord[], today = getTodayGrego
   const lastBreakDay = [...timeline].reverse().find((day) => getStreakDayState(day, today) === 'break');
   const rollingStart = addDays(today, -29);
   const performance = getPrayerPerformance(records, rollingStart, today, today);
-  const strongestPrayer = [...performance].sort((a, b) => b.rate - a.rate)[0] ?? null;
-  const weakestPrayer = [...performance].sort((a, b) => a.rate - b.rate)[0] ?? null;
-  const focusPrayer = strongestPrayer && weakestPrayer && weakestPrayer.rate < strongestPrayer.rate
-    ? weakestPrayer
-    : null;
+  const highestRate = Math.max(...performance.map((item) => item.rate));
+  const lowestRate = Math.min(...performance.map((item) => item.rate));
+  const highestPrayer = performance.find((item) => item.rate === highestRate) ?? null;
+  const lowestPrayer = performance.find((item) => item.rate === lowestRate) ?? null;
+  const hasPerformanceSpread = Boolean(
+    highestPrayer && lowestPrayer && highestPrayer.rate > lowestPrayer.rate,
+  );
+  const strongestPrayer = hasPerformanceSpread ? highestPrayer : null;
+  const focusPrayer = hasPerformanceSpread ? lowestPrayer : null;
   const currentSevenDays = getOnTimeRate(records, addDays(today, -7), addDays(today, -1), today);
   const previousSevenDays = getOnTimeRate(records, addDays(today, -14), addDays(today, -8), today);
 
@@ -341,8 +345,10 @@ export function buildInsightSummary(
   const period = getOnTimeRate(records, startDate, endDate, today);
   if (period.eligible === 0) return null;
 
-  const strongest = [...getPrayerPerformance(records, startDate, endDate, today)]
-    .sort((a, b) => b.rate - a.rate)[0];
+  const performance = [...getPrayerPerformance(records, startDate, endDate, today)]
+    .sort((a, b) => b.rate - a.rate);
+  const strongest = performance[0];
+  const weakest = performance[performance.length - 1];
   const comparison = getOnTimeRate(records, comparisonStartDate, comparisonEndDate, today);
   const trend = comparison.eligible > 0 ? period.rate - comparison.rate : null;
   const trendUnit = Math.abs(trend ?? 0) === 1 ? 'point' : 'points';
@@ -353,9 +359,13 @@ export function buildInsightSummary(
       : trend < 0
         ? ` Down ${Math.abs(trend)} ${trendUnit}.`
         : ' Holding steady.';
-  const strongestText = strongest ? ` Strongest: ${strongest.prayer} at ${strongest.rate}%.` : '';
+  const performanceText = strongest && weakest && strongest.rate > weakest.rate
+    ? ` Strongest: ${strongest.prayer} at ${strongest.rate}%.`
+    : strongest
+      ? ` All prayers are even at ${strongest.rate}%.`
+      : '';
 
-  return `${label}: ${period.onTime}/${period.eligible} on time (${period.rate}%).${strongestText}${trendText}`;
+  return `${label}: ${period.onTime}/${period.eligible} on time (${period.rate}%).${performanceText}${trendText}`;
 }
 
 /**

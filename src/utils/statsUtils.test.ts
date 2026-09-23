@@ -83,6 +83,13 @@ describe('prayer insights', () => {
     expect(insights.focusPrayer).toMatchObject({ prayer: 'Asr', rate: 67 });
   });
 
+  it('does not single out a strongest prayer when every rate is tied', () => {
+    const insights = getPrayerInsights(recordsFor('2026-09-30'));
+
+    expect(insights.strongestPrayer).toBeNull();
+    expect(insights.focusPrayer).toBeNull();
+  });
+
   it('builds a supportive notification summary with rate, strongest prayer, and trend', () => {
     const currentWeek = [
       ...recordsFor('2026-09-24'),
@@ -92,6 +99,7 @@ describe('prayer insights', () => {
       ...recordsFor('2026-09-28'),
       ...recordsFor('2026-09-29'),
     ];
+    currentWeek[2] = { ...currentWeek[2], status: 'Missed' };
     const previousWeek = [
       ...recordsFor('2026-09-17'),
       ...recordsFor('2026-09-18'),
@@ -102,6 +110,7 @@ describe('prayer insights', () => {
       ...recordsFor('2026-09-23'),
     ];
     previousWeek[2] = { ...previousWeek[2], status: 'Missed' };
+    previousWeek[3] = { ...previousWeek[3], status: 'Missed' };
 
     const summary = buildInsightSummary(
       [...previousWeek, ...currentWeek],
@@ -112,6 +121,6 @@ describe('prayer insights', () => {
       'This week',
     );
 
-    expect(summary).toBe('This week: 30/30 on time (100%). Strongest: Fajr at 100%. Up 3 points.');
+    expect(summary).toBe('This week: 29/30 on time (97%). Strongest: Fajr at 100%. Up 3 points.');
   });
 });

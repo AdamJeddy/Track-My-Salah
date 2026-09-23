@@ -35,7 +35,7 @@ describe('notification insights', () => {
 
   it('returns notification-ready insight text from local records', () => {
     expect(buildNotificationInsight(day('2026-09-29'), 'weekly', '2026-09-30')).toBe(
-      'This week: 5/5 on time (100%). Strongest: Fajr at 100%.',
+      'This week: 5/5 on time (100%). All prayers are even at 100%.',
     );
   });
 });
