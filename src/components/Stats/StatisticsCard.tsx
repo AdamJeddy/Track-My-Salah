@@ -12,29 +12,38 @@ function calculateStats(records: PrayerRecord[]) {
   const firstRecordedDate = getFirstRecordDate(records);
   const missedOrUnrecordedPrayers = sortedDays.reduce((sum, day) => sum + day.missed + day.unrecorded, 0);
   
-  // Calculate streaks (days where all non-excused prayers were prayed)
-  const isGoodDay = (day: typeof sortedDays[number]) => {
+  type StreakDay = 'on-time' | 'neutral' | 'break';
+  const getStreakDay = (day: typeof sortedDays[number]): StreakDay => {
     const totalRelevant = Math.max(PRAYER_NAMES.length - day.excused, 0);
-    return totalRelevant > 0 && day.completed === totalRelevant && day.missed === 0 && day.unrecorded === 0;
+    if (totalRelevant === 0) return 'neutral';
+
+    const completedOnTime = day.prayed + day.jamah;
+    if (completedOnTime === totalRelevant && day.missed === 0 && day.qada === 0 && day.unrecorded === 0) {
+      return 'on-time';
+    }
+
+    const isPendingToday = day.date === getTodayGregorian()
+      && day.missed === 0
+      && day.qada === 0
+      && day.prayersLogged.size < PRAYER_NAMES.length;
+    return isPendingToday ? 'neutral' : 'break';
   };
 
   let currentStreak = 0;
-  const lastDay = sortedDays[sortedDays.length - 1];
-  const streakEnd = lastDay?.date === getTodayGregorian() && lastDay.missed === 0 && !isGoodDay(lastDay)
-    ? sortedDays.length - 2
-    : sortedDays.length - 1;
-  for (let i = streakEnd; i >= 0 && isGoodDay(sortedDays[i]); i--) {
-    currentStreak++;
+  for (let i = sortedDays.length - 1; i >= 0; i--) {
+    const streakDay = getStreakDay(sortedDays[i]);
+    if (streakDay === 'on-time') currentStreak++;
+    if (streakDay === 'break') break;
   }
 
   let bestStreak = 0;
   let tempStreak = 0;
   
-  // A "good day" is when all logged prayers (excluding excused) are Prayed or Jamah
   for (let i = sortedDays.length - 1; i >= 0; i--) {
-    if (isGoodDay(sortedDays[i])) {
+    const streakDay = getStreakDay(sortedDays[i]);
+    if (streakDay === 'on-time') {
       tempStreak++;
-    } else {
+    } else if (streakDay === 'break') {
       bestStreak = Math.max(bestStreak, tempStreak);
       tempStreak = 0;
     }
@@ -82,7 +91,7 @@ export function StatisticsCard({ records }: StatisticsCardProps) {
       </h2>
 
       <div className="grid grid-cols-3 gap-4">
-        {/* Current Streak */}
+        {/* Current On-Time Streak */}
         <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl">
           <div className="flex justify-center mb-2">
             <Flame className="w-6 h-6 text-orange-500" />
@@ -91,11 +100,11 @@ export function StatisticsCard({ records }: StatisticsCardProps) {
             {stats.currentStreak}
           </span>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Current Streak
+            Current On-Time Streak
           </p>
         </div>
 
-        {/* Best Streak */}
+        {/* Best On-Time Streak */}
         <div className="text-center p-3 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-xl">
           <div className="flex justify-center mb-2">
             <Trophy className="w-6 h-6 text-yellow-500" />
@@ -104,7 +113,7 @@ export function StatisticsCard({ records }: StatisticsCardProps) {
             {stats.bestStreak}
           </span>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            Best Streak
+            Best On-Time Streak
           </p>
         </div>
 

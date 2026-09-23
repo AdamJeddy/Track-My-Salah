@@ -220,7 +220,7 @@ Important implications:
 
 The page currently treats `Prayed`, `Jamah`, and `Qada` as completed prayers in most aggregate views.
 
-Today's recorded prayers contribute immediately to totals and calendars. Pending slots today do not count as missed or lower consistency. An incomplete current day preserves yesterday's streak; completing it extends the streak.
+Today's recorded prayers contribute immediately to totals and calendars. Pending slots today do not count as missed or lower consistency. Current and best streaks require every non-excused prayer to be completed on time as `Prayed` or `Jamah`; Qada, missed, and past unrecorded prayers break a streak. A fully excused day preserves a streak without increasing it.
 
 ### Settings page
 
