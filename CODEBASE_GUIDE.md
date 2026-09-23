@@ -54,7 +54,7 @@ Key characteristics:
 ### Pages
 
 - `src/pages/OnboardingPage.tsx`
-  - First-run flow.
+  - First-run flow with a three-step first-week guide covering prayer statuses, strict on-time streaks, and local backups.
   - Collects gender.
   - Can import generated sample data for demo/testing.
 
@@ -191,6 +191,7 @@ Browser-only `localStorage` keys:
 
 `OnboardingPage.tsx` does two important things besides the welcome UI:
 
+- Explains the first-week logging flow and makes streak and backup rules explicit before users begin.
 - Saves gender preference before entering the app.
 - Optionally generates 14 days of sample records via `buildSampleData()`.
 
