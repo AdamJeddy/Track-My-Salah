@@ -563,7 +563,7 @@ export function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">TrackMySalah</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Version 0.2.0 Beta</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Version 0.5.0 Beta</p>
               </div>
             </div>
             
