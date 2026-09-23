@@ -26,6 +26,14 @@ const PRAYER_TIMES: Record<PrayerName, string> = {
   Isha: 'Night',
 };
 
+const PRAYER_NAMES_ARABIC: Record<PrayerName, string> = {
+  Fajr: 'الفجر',
+  Dhuhr: 'الظهر',
+  Asr: 'العصر',
+  Maghrib: 'المغرب',
+  Isha: 'العشاء',
+};
+
 const getStatusOptions = (gender?: 'male' | 'female' | null) =>
   PRAYER_STATUS_OPTIONS.filter((status): status is NonNullable<PrayerStatus> => {
     if (status === null) return false;
@@ -70,7 +78,9 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }:
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-sm font-semibold leading-tight text-gray-900 dark:text-white">{prayer}</h3>
-                    <p className="text-xs leading-tight text-gray-500 dark:text-gray-400">{PRAYER_TIMES[prayer]}</p>
+                    <p className="text-xs leading-tight text-gray-500 dark:text-gray-400">
+                      {PRAYER_TIMES[prayer]} · <span lang="ar" dir="rtl">{PRAYER_NAMES_ARABIC[prayer]}</span>
+                    </p>
                   </div>
                 </div>
 
@@ -94,7 +104,7 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }:
                         ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'}
                       `}
                       aria-pressed={isActive}
-                      aria-label={config.label}
+                      aria-label={`${prayer}: ${config.label}`}
                       title={config.label}
                     >
                       {config.icon}
@@ -125,7 +135,7 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }:
                     {prayer}
                   </h3>
                   <p className="text-xs leading-tight text-gray-500 dark:text-gray-400">
-                    {PRAYER_TIMES[prayer]}
+                    {PRAYER_TIMES[prayer]} · <span lang="ar" dir="rtl">{PRAYER_NAMES_ARABIC[prayer]}</span>
                   </p>
                 </div>
               </div>
@@ -136,6 +146,7 @@ export function PrayerList({ prayerStatuses, onStatusChange, disabled, gender }:
                   onStatusChange={(status) => onStatusChange(prayer, status)}
                   disabled={disabled}
                   gender={gender}
+                  prayerName={prayer}
                 />
               </div>
             </div>
