@@ -222,6 +222,8 @@ The page currently treats `Prayed`, `Jamah`, and `Qada` as completed prayers in 
 
 Today's recorded prayers contribute immediately to totals and calendars. Pending slots today do not count as missed or lower consistency. Current and best streaks require every non-excused prayer to be completed on time as `Prayed` or `Jamah`; Qada, missed, and past unrecorded prayers break a streak. A fully excused day preserves a streak without increasing it.
 
+The headline rate uses the latest 30 calendar days, starts no earlier than the first record, excludes excused prayers, and excludes today's still-pending prayers. The streak cards expose the rule and most recent break. `InsightsCard` uses the same local calculations to show the strongest prayer, a gentle focus area, and the latest seven-day direction.
+
 ### Settings page
 
 `SettingsPage.tsx` is the operational settings hub.
@@ -252,6 +254,7 @@ Notifications are intentionally split by platform.
 - Requests browser notification permission.
 - Uses `navigator.serviceWorker.ready`.
 - Schedules reminders with `setTimeout`, then reschedules after firing.
+- Builds weekly and monthly insight text when each summary fires.
 
 Practical limitation:
 
@@ -264,6 +267,9 @@ Practical limitation:
 - Uses `@capacitor/local-notifications`.
 - Cancels the existing scheduled notification before reapplying settings.
 - Schedules a daily local notification at the chosen hour/minute.
+- Schedules opt-in weekly and monthly insight notifications with on-time rate, strongest prayer, and period-over-period direction.
+
+Native notification bodies are generated when the schedule is applied (app startup or a notification-setting change). The Stats screen always calculates from the latest records.
 
 ## Offline And PWA Behavior
 

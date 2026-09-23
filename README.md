@@ -11,10 +11,11 @@ The project is shipped as:
 
 - Track five daily prayers with status logging
 - Gregorian and Hijri date support
+- Strict on-time streaks, rolling rates, and private progress insights
 - Monthly and yearly statistics with heatmap views
 - Local-only storage (privacy-first)
 - Offline support via service worker (web) and embedded assets (native)
-- Daily reminder notifications (web and native)
+- Daily reminders plus optional weekly and monthly insight notifications
 - CSV export/import
 
 ## Tech Stack
